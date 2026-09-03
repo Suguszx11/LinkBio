@@ -1,0 +1,38 @@
+{
+  "backgroundType": "solid",
+  "backgroundColor": "#08080d",
+  "gradientColors": [
+    "#4b1c77",
+    "#08080d"
+  ],
+  "gradientAngle": 135,
+  "backgroundImage": "",
+  "backgroundGif": "",
+  "backgroundVideo": "",
+  "backgroundOpacity": 1,
+  "backgroundBlur": 0,
+  "videoOpacity": 1,
+  "videoLoop": true,
+  "videoMute": true,
+  "overlay": "",
+  "overlayOpacity": 0.2,
+  "effects": {
+    "particles": true,
+    "rain": true,
+    "snow": true,
+    "meteor": true,
+    "stars": true,
+    "neonGlow": true,
+    "grid": true,
+    "aurora": true,
+    "fog": true,
+    "floatingParticles": true,
+    "borderGlow": true,
+    "glassBlur": true
+  },
+  "effectIntensity": 0.7,
+  "particleCount": 40,
+  "particleSpeed": 1,
+  "particleSize": 2,
+  "performanceMode": false
+}

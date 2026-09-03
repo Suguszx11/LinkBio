@@ -1,0 +1,16 @@
+{
+  "name": "linkbio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LinkBio with admin, local music uploads and realtime visualizer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "node -e \"console.log('LinkBio: no build step required (Express + Vanilla JS).')\""
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2"
+  }
+}

@@ -1,0 +1,99 @@
+{
+  "profileViews": 10,
+  "viewsByDay": {
+    "2026-09-03": 10
+  },
+  "clicksByLink": {
+    "5ebc8cac-b15e-4774-8725-2712cb68575b": 2
+  },
+  "clicksByDay": {
+    "2026-09-03": 2
+  },
+  "lastUpdate": "2026-09-03T12:32:04.356Z",
+  "analytics": {},
+  "viewSessions": {
+    "193cabae-5098-4f12-b21d-b245864f901f": 1788438724355
+  },
+  "activity": [
+    {
+      "type": "view",
+      "at": "2026-09-03T12:32:04.356Z"
+    },
+    {
+      "type": "music-play",
+      "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
+      "at": "2026-09-03T12:01:24.542Z"
+    },
+    {
+      "type": "view",
+      "at": "2026-09-03T12:01:05.019Z"
+    },
+    {
+      "type": "view",
+      "at": "2026-09-03T11:19:28.599Z"
+    },
+    {
+      "type": "music-play",
+      "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
+      "at": "2026-09-03T11:15:19.487Z"
+    },
+    {
+      "type": "music-play",
+      "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+      "at": "2026-09-03T11:15:08.702Z"
+    },
+    {
+      "type": "music-play",
+      "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+      "at": "2026-09-03T11:15:03.615Z"
+    },
+    {
+      "type": "music-play",
+      "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+      "at": "2026-09-03T11:12:35.509Z"
+    },
+    {
+      "type": "music-play",
+      "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+      "at": "2026-09-03T11:12:33.424Z"
+    },
+    {
+      "type": "profile-update",
+      "at": "2026-09-03T11:11:06.121Z"
+    },
+    {
+      "type": "profile-update",
+      "at": "2026-09-03T11:10:16.405Z"
+    },
+    {
+      "type": "profile-update",
+      "at": "2026-09-03T11:08:10.217Z"
+    },
+    {
+      "type": "profile-update",
+      "at": "2026-09-03T11:08:10.179Z"
+    },
+    {
+      "type": "click",
+      "linkId": "5ebc8cac-b15e-4774-8725-2712cb68575b",
+      "at": "2026-09-03T11:07:31.773Z"
+    },
+    {
+      "type": "music-play",
+      "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+      "at": "2026-09-03T11:07:30.481Z"
+    },
+    {
+      "type": "profile-update",
+      "at": "2026-09-03T11:07:19.269Z"
+    },
+    {
+      "type": "profile-update",
+      "at": "2026-09-03T10:59:32.551Z"
+    },
+    {
+      "type": "profile-update",
+      "at": "2026-09-03T10:59:32.469Z"
+    }
+  ]
+}

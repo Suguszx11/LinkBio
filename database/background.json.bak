@@ -1,0 +1,11 @@
+{
+  "enabled": true,
+  "preset": "smoke",
+  "intensity": 1,
+  "speed": 0.3,
+  "opacity": 0.9,
+  "quality": "medium",
+  "performanceMode": false,
+  "interaction": true,
+  "settings": {}
+}

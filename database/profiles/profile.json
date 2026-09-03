@@ -1,0 +1,42 @@
+{
+  "name": "Your Name",
+  "username": "username",
+  "bio": "สร้าง Link Bio ของคุณ",
+  "avatar": "/uploads/avatars/1788373169301-28667f82c9.jpg",
+  "cover": "",
+  "status": "Online",
+  "verified": false,
+  "badge": {
+    "text": "Dekkhong",
+    "color": "#39ff14",
+    "enabled": true
+  },
+  "typography": {
+    "font": "Prompt",
+    "size": 16,
+    "align": "center"
+  },
+  "theme": {
+    "accent": "#a78bfa",
+    "background": "#07070c",
+    "card": "rgba(13,12,22,.72)",
+    "backgroundType": "solid",
+    "gradient": "",
+    "backgroundImage": "",
+    "backgroundVideo": "",
+    "blur": 24,
+    "neon": true,
+    "effects": {
+      "rain": false,
+      "snow": false,
+      "particles": true
+    }
+  },
+  "visualizer": "bars",
+  "visualizerEnabled": true,
+  "audioMode": "local",
+  "autoplay": false,
+  "cardStyle": "glass",
+  "links": [],
+  "music": []
+}

@@ -1,0 +1,15 @@
+{
+  "enabled": false,
+  "text": "",
+  "icon": "◆",
+  "position": "under-avatar",
+  "size": 10,
+  "color": "#39ff14",
+  "neonColor": "#39ff14",
+  "glowIntensity": 1,
+  "animation": "pulse",
+  "opacity": 1,
+  "border": true,
+  "radius": 999,
+  "animationSpeed": 1
+}
