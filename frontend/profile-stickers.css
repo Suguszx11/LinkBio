@@ -1,0 +1,62 @@
+.profile-sticker{
+  position:absolute;
+  left:50%;
+  top:50%;
+  z-index:20;
+  width:var(--sticker-size,42px);
+  height:var(--sticker-size,42px);
+  display:grid;
+  place-items:center;
+  font-size:var(--sticker-size,42px);
+  line-height:1;
+  pointer-events:none;
+  user-select:none;
+  opacity:var(--sticker-opacity,1);
+  transform:
+    translate(
+      calc(-50% + var(--sticker-x,0px)),
+      calc(-50% + var(--sticker-y,0px))
+    )
+    rotate(var(--sticker-rotation,0deg));
+  transform-origin:center;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.28));
+  animation:linkBioStickerFloat
+    calc(1.8s / var(--sticker-speed,1))
+    ease-in-out infinite;
+  will-change:transform;
+}
+
+@keyframes linkBioStickerFloat{
+  0%,100%{transform:translate(calc(-50% + var(--sticker-x,0px)),calc(-50% + var(--sticker-y,0px))) rotate(var(--sticker-rotation,0deg)) translateY(0)}
+  50%{transform:translate(calc(-50% + var(--sticker-x,0px)),calc(-50% + var(--sticker-y,0px))) rotate(var(--sticker-rotation,0deg)) translateY(-7px)}
+}
+
+.sticker-sparkle{
+  filter:
+    drop-shadow(0 0 8px rgba(255,255,255,.8))
+    drop-shadow(0 0 18px rgba(168,85,247,.7));
+}
+
+.sticker-heart{
+  filter:
+    drop-shadow(0 0 8px rgba(255,80,150,.8));
+}
+
+.sticker-star,
+.sticker-butterfly{
+  filter:
+    drop-shadow(0 0 9px rgba(255,255,255,.65));
+}
+
+.sticker-bunny,
+.sticker-bear,
+.sticker-cat,
+.sticker-duck{
+  filter:drop-shadow(0 7px 10px rgba(0,0,0,.3));
+}
+
+@media(prefers-reduced-motion:reduce){
+  .profile-sticker{
+    animation:none!important;
+  }
+}

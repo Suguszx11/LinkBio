@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "description": "Built-in LinkBio animated sticker presets. Rendered locally with CSS/emoji; no upload required.",
+  "presets": [
+    {"id":"sparkle","label":"ประกายวิ้ง","emoji":"✨"},{"id":"heart","label":"หัวใจลอย","emoji":"💗"},
+    {"id":"star","label":"ดาวน่ารัก","emoji":"⭐"},{"id":"bunny","label":"กระต่าย","emoji":"🐰"},
+    {"id":"bear","label":"หมีน้อย","emoji":"🧸"},{"id":"cat","label":"แมวน้อย","emoji":"🐱"},
+    {"id":"duck","label":"เป็ดน้อย","emoji":"🐥"},{"id":"flower","label":"ดอกไม้","emoji":"🌸"},
+    {"id":"butterfly","label":"ผีเสื้อ","emoji":"🦋"},{"id":"cloud","label":"ก้อนเมฆ","emoji":"☁️"},
+    {"id":"moon","label":"พระจันทร์","emoji":"🌙"},{"id":"planet","label":"ดาวเคราะห์","emoji":"🪐"},
+    {"id":"rainbow","label":"สายรุ้ง","emoji":"🌈"},{"id":"mushroom","label":"เห็ดน้อย","emoji":"🍄"},
+    {"id":"cupcake","label":"คัพเค้ก","emoji":"🧁"},{"id":"ghost","label":"ผีน้อย","emoji":"👻"},
+    {"id":"alien","label":"เอเลี่ยนน้อย","emoji":"👽"}
+  ]
+}
