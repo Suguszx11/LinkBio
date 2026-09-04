@@ -9,3 +9,6 @@ yarn-error.log*
 Thumbs.db
 *.tmp
 *.temp
+
+database/support-tickets.json
+database/support-messages.json

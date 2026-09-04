@@ -2,33 +2,33 @@
 <html lang="th">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>LinkBio Studio — Admin</title>
+<title>LinkBio Studio â€” Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/admin/admin.css"><link rel="stylesheet" href="/admin/profile-card.css?v=2"><link rel="stylesheet" href="/admin/sticker-studio.css?v=2">
+<link rel="stylesheet" href="/admin/admin.css"><link rel="stylesheet" href="/admin/profile-card.css?v=2"><link rel="stylesheet" href="/admin/sticker-studio.css?v=2"><link rel="stylesheet" href="/admin/support-admin.css?v=20260905-1">
 </head>
 <body>
 <div id="loginPage" class="login-page">
   <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
   <form id="loginForm" class="login-card">
-    <div class="brand-mark"><span>LB</span></div><div class="kicker">ระบบจัดการ LINKBIO</div>
-    <h1>ยินดีต้อนรับกลับ</h1><p>จัดการโปรไฟล์ เพลง ลิงก์ และธีมของคุณในที่เดียว</p>
-    <label for="password">รหัสผ่านผู้ดูแลระบบ</label><input id="password" type="password" autocomplete="current-password" placeholder="••••••••••••" required>
-    <button id="loginButton" class="btn btn-primary btn-lg" type="submit"><span>เข้าสู่ระบบ</span><i>→</i></button>
-    <div id="loginMessage" class="form-message"></div><a href="/register.html" class="login-back">＋ สร้างบัญชีใหม่</a><a href="/profile" class="login-back">← ดูหน้า Public Profile</a>
+    <div class="brand-mark"><span>LB</span></div><div class="kicker">à¸£à¸°à¸šà¸šà¸ˆà¸±à¸”à¸à¸²à¸£ LINKBIO</div>
+    <h1>à¸¢à¸´à¸™à¸”à¸µà¸•à¹‰à¸­à¸™à¸£à¸±à¸šà¸à¸¥à¸±à¸š</h1><p>à¸ˆà¸±à¸”à¸à¸²à¸£à¹‚à¸›à¸£à¹„à¸Ÿà¸¥à¹Œ à¹€à¸žà¸¥à¸‡ à¸¥à¸´à¸‡à¸à¹Œ à¹à¸¥à¸°à¸˜à¸µà¸¡à¸‚à¸­à¸‡à¸„à¸¸à¸“à¹ƒà¸™à¸—à¸µà¹ˆà¹€à¸”à¸µà¸¢à¸§</p>
+    <label for="password">à¸£à¸«à¸±à¸ªà¸œà¹ˆà¸²à¸™à¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥à¸£à¸°à¸šà¸š</label><input id="password" type="password" autocomplete="current-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+    <button id="loginButton" class="btn btn-primary btn-lg" type="submit"><span>à¹€à¸‚à¹‰à¸²à¸ªà¸¹à¹ˆà¸£à¸°à¸šà¸š</span><i>â†’</i></button>
+    <div id="loginMessage" class="form-message"></div><a href="/register.html" class="login-back">ï¼‹ à¸ªà¸£à¹‰à¸²à¸‡à¸šà¸±à¸à¸Šà¸µà¹ƒà¸«à¸¡à¹ˆ</a><a href="/profile" class="login-back">â† à¸”à¸¹à¸«à¸™à¹‰à¸² Public Profile</a>
   </form>
 </div>
 <div id="adminPage" class="admin-shell hidden">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-brand"><div class="brand-orb">LB</div><div><strong>LinkBio</strong><small>แผงควบคุมผู้ดูแล</small></div></div>
-    <div class="nav-label">เมนูหลัก</div><nav id="nav"></nav>
-    <div class="sidebar-bottom"><a href="/profile" target="_blank" class="side-link">↗ <span>Public Profile</span></a><button id="logoutButton" class="side-link logout">⇥ <span>ออกจากระบบ</span></button></div>
+    <div class="sidebar-brand"><div class="brand-orb">LB</div><div><strong>LinkBio</strong><small>à¹à¸œà¸‡à¸„à¸§à¸šà¸„à¸¸à¸¡à¸œà¸¹à¹‰à¸”à¸¹à¹à¸¥</small></div></div>
+    <div class="nav-label">à¹€à¸¡à¸™à¸¹à¸«à¸¥à¸±à¸</div><nav id="nav"></nav>
+    <div class="sidebar-bottom"><a href="/profile" target="_blank" class="side-link">â†— <span>Public Profile</span></a><button id="logoutButton" class="side-link logout">â‡¥ <span>à¸­à¸­à¸à¸ˆà¸²à¸à¸£à¸°à¸šà¸š</span></button></div>
   </aside>
   <main class="main-area">
-    <header class="topbar"><button id="mobileMenu" class="icon-btn mobile-only">☰</button><div class="title-wrap"><div class="breadcrumb">LINKBIO / <span id="crumb">Dashboard</span></div><h1 id="pageTitle">Dashboard</h1></div><div class="top-actions"><span class="server-pill"><i></i> Server Online</span><a href="/profile" target="_blank" class="icon-btn" title="Preview">↗</a></div></header>
+    <header class="topbar"><button id="mobileMenu" class="icon-btn mobile-only">â˜°</button><div class="title-wrap"><div class="breadcrumb">LINKBIO / <span id="crumb">Dashboard</span></div><h1 id="pageTitle">Dashboard</h1></div><div class="top-actions"><span class="server-pill"><i></i> Server Online</span><a href="/profile" target="_blank" class="icon-btn" title="Preview">â†—</a></div></header>
     <div id="app" class="page-content"></div>
   </main>
 </div>
 <div id="modalRoot"></div><div id="toastRoot" aria-live="polite"></div>
-<script src="/admin/admin.js?v=20260905-1"></script><script src="/admin/sticker-catalog.js?v=20260905-1"></script><script src="/admin/sticker-studio.js?v=20260905-1"></script>
+<script src="/admin/admin.js?v=20260905-1"></script><script src="/admin/sticker-catalog.js?v=20260905-1"></script><script src="/admin/sticker-studio.js?v=20260905-1"></script><script src="/admin/support-admin.js?v=20260905-1"></script>
 </body></html>
