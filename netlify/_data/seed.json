@@ -1,0 +1,474 @@
+{
+  "profile": {
+    "name": "ซูกัสเด็กโข่ง",
+    "username": "Dekkhong",
+    "displayName": "ซูกัสเด็กโข่ง",
+    "bio": "TEST",
+    "bioLines": "",
+    "align": "center",
+    "font": "Prompt",
+    "fontSize": 16,
+    "fontWeight": 600,
+    "letterSpacing": 0,
+    "lineHeight": 1.5,
+    "status": "Online",
+    "statusEmoji": "🎶",
+    "verified": true,
+    "verifiedColor": "#00ff91",
+    "avatar": "",
+    "avatarCrop": 50,
+    "avatarZoom": 1,
+    "avatarPosition": "center",
+    "avatarBorder": true,
+    "avatarBorderWidth": 3,
+    "avatarGlow": true,
+    "avatarShadow": true,
+    "avatarShape": "circle",
+    "cover": "",
+    "coverPosition": "center",
+    "coverOpacity": 1,
+    "coverBlur": 0,
+    "coverOverlay": "",
+    "cardWidth": 480,
+    "cardRadius": 30,
+    "cardShadow": true,
+    "cardBlur": 24,
+    "cardTransparency": 0.72,
+    "spacing": 10,
+    "animation": "smooth",
+    "entrance": "fade",
+    "hover": "lift",
+    "visibility": true,
+    "customCss": "",
+    "seoTitle": "LinkBio",
+    "seoDescription": "My LinkBio",
+    "ogImage": "",
+    "favicon": "",
+    "accent": "#a855f7",
+    "textColor": "#ffffff",
+    "secondary": "#aaaaaa",
+    "background": "#000000",
+    "language": "th",
+    "timezone": "Asia/Bangkok",
+    "customStatus": "ได้รับยืนยันตัวตนเมื่อ3/9/2026",
+    "verifiedText": "",
+    "verifiedIcon": "✓",
+    "verifiedPosition": "inline",
+    "verifiedSize": 17,
+    "verifiedNeon": "#00ff91",
+    "verifiedGlow": 1,
+    "verifiedRadius": 0,
+    "verifiedOpacity": 1,
+    "verifiedAnimation": "glow",
+    "verifiedAnimationSpeed": 1,
+    "verifiedTooltip": "Verified Profile",
+    "links": [
+      {
+        "id": "5ebc8cac-b15e-4774-8725-2712cb68575b",
+        "title": "Instagram.com",
+        "description": "ss",
+        "url": "https://www.instagram.com/dekkhong_09/",
+        "icon": "instagram",
+        "iconKey": "instagram",
+        "iconAuto": true,
+        "iconColor": "",
+        "badge": "sss",
+        "enabled": true,
+        "visible": true,
+        "openNewTab": true,
+        "confirm": true,
+        "hover": "bounce",
+        "style": "Rainbow",
+        "startAt": "",
+        "endAt": "",
+        "timezone": "Asia/Bangkok",
+        "clicks": 0,
+        "createdAt": "2026-09-03T10:21:00.471Z"
+      }
+    ],
+    "music": [
+      {
+        "id": "ba93506d-999e-4efb-8154-c04e0619fa62",
+        "type": "youtube",
+        "youtubeId": "BJHBp4fsWT4",
+        "url": "https://www.youtube.com/watch?v=BJHBp4fsWT4",
+        "thumbnail": "https://i.ytimg.com/vi/BJHBp4fsWT4/hqdefault.jpg",
+        "title": "GH - เชื่อใจฉัน",
+        "artist": "GH DEK GERN ROI",
+        "enabled": true,
+        "order": 2,
+        "createdAt": "2026-09-03T10:50:56.625Z"
+      }
+    ],
+    "appearance": {
+      "backgroundType": "solid",
+      "backgroundColor": "#08080d",
+      "gradientColors": [
+        "#4b1c77",
+        "#08080d"
+      ],
+      "gradientAngle": 135,
+      "backgroundImage": "",
+      "backgroundGif": "",
+      "backgroundVideo": "",
+      "backgroundOpacity": 1,
+      "backgroundBlur": 0,
+      "videoOpacity": 1,
+      "videoLoop": true,
+      "videoMute": true,
+      "overlay": "",
+      "overlayOpacity": 0.2,
+      "effects": {
+        "particles": true,
+        "rain": true,
+        "snow": true,
+        "meteor": true,
+        "stars": true,
+        "neonGlow": true,
+        "grid": true,
+        "aurora": true,
+        "fog": true,
+        "floatingParticles": true,
+        "borderGlow": true,
+        "glassBlur": true
+      },
+      "effectIntensity": 0.7,
+      "particleCount": 40,
+      "particleSpeed": 1,
+      "particleSize": 2,
+      "performanceMode": false
+    },
+    "visualizer": {
+      "enabled": true,
+      "mode": "",
+      "sensitivity": 1,
+      "smoothing": 0.78,
+      "barCount": 34,
+      "barWidth": 4,
+      "barGap": 3,
+      "height": 42,
+      "glow": 0.9,
+      "opacity": 0.9,
+      "speed": 1,
+      "frequencyRange": "full",
+      "bass": 1,
+      "mid": 1,
+      "treble": 1,
+      "color": "#a855f7",
+      "gradient": [
+        "#e879f9",
+        "#818cf8"
+      ],
+      "rotation": 0,
+      "mirror": true,
+      "responsive": true
+    },
+    "branding": {
+      "enabled": false,
+      "text": "",
+      "icon": "◆",
+      "position": "under-avatar",
+      "size": 10,
+      "color": "#39ff14",
+      "neonColor": "#39ff14",
+      "glowIntensity": 1,
+      "animation": "pulse",
+      "opacity": 1,
+      "border": true,
+      "radius": 999,
+      "animationSpeed": 1
+    },
+    "backgroundSettings": {
+      "enabled": true,
+      "preset": "smoke",
+      "intensity": 0.7,
+      "speed": 1,
+      "opacity": 0.9,
+      "quality": "medium",
+      "performanceMode": false,
+      "interaction": true,
+      "settings": {}
+    }
+  },
+  "links": [
+    {
+      "id": "5ebc8cac-b15e-4774-8725-2712cb68575b",
+      "title": "Instagram.com",
+      "description": "",
+      "url": "https://www.instagram.com/dekkhong_09/",
+      "icon": "instagram",
+      "iconKey": "instagram",
+      "iconAuto": true,
+      "iconColor": "",
+      "badge": "ฟอลมาน้องๆ",
+      "enabled": true,
+      "visible": true,
+      "openNewTab": true,
+      "confirm": true,
+      "hover": "float",
+      "style": "Gradient Border",
+      "startAt": "",
+      "endAt": "",
+      "timezone": "Asia/Bangkok",
+      "clicks": 0,
+      "createdAt": "2026-09-03T10:21:00.471Z"
+    }
+  ],
+  "music": [
+    {
+      "id": "1f0df065-8661-4219-b159-4163ccd7856b",
+      "type": "youtube",
+      "youtubeId": "1YK9AcbuwDI",
+      "url": "https://www.youtube.com/watch?v=1YK9AcbuwDI",
+      "thumbnail": "https://i.ytimg.com/vi/1YK9AcbuwDI/hqdefault.jpg",
+      "title": "รู้ทั้งรู้ (ALL-KNOW)",
+      "artist": "OG-ANIC - [Prod.by NINO]",
+      "enabled": true,
+      "order": 1,
+      "createdAt": "2026-09-03T11:14:41.193Z"
+    }
+  ],
+  "appearance": {
+    "backgroundType": "solid",
+    "backgroundColor": "#08080d",
+    "gradientColors": [
+      "#4b1c77",
+      "#08080d"
+    ],
+    "gradientAngle": 135,
+    "backgroundImage": "",
+    "backgroundGif": "",
+    "backgroundVideo": "",
+    "backgroundOpacity": 1,
+    "backgroundBlur": 0,
+    "videoOpacity": 1,
+    "videoLoop": true,
+    "videoMute": true,
+    "overlay": "",
+    "overlayOpacity": 0.2,
+    "effects": {
+      "particles": true,
+      "rain": true,
+      "snow": true,
+      "meteor": true,
+      "stars": true,
+      "neonGlow": true,
+      "grid": true,
+      "aurora": true,
+      "fog": true,
+      "floatingParticles": true,
+      "borderGlow": true,
+      "glassBlur": true
+    },
+    "effectIntensity": 0.7,
+    "particleCount": 40,
+    "particleSpeed": 1,
+    "particleSize": 2,
+    "performanceMode": false
+  },
+  "visualizer": {
+    "enabled": true,
+    "mode": "",
+    "sensitivity": 1,
+    "smoothing": 0.78,
+    "barCount": 34,
+    "barWidth": 4,
+    "barGap": 3,
+    "height": 42,
+    "glow": 0.9,
+    "opacity": 0.9,
+    "speed": 1,
+    "frequencyRange": "full",
+    "bass": 1,
+    "mid": 1,
+    "treble": 1,
+    "color": "#a855f7",
+    "gradient": [
+      "#e879f9",
+      "#818cf8"
+    ],
+    "rotation": 0,
+    "mirror": true,
+    "responsive": true
+  },
+  "branding": {
+    "enabled": false,
+    "text": "",
+    "icon": "◆",
+    "position": "under-avatar",
+    "size": 10,
+    "color": "#39ff14",
+    "neonColor": "#39ff14",
+    "glowIntensity": 1,
+    "animation": "pulse",
+    "opacity": 1,
+    "border": true,
+    "radius": 999,
+    "animationSpeed": 1
+  },
+  "analytics": {
+    "profileViews": 11,
+    "viewsByDay": {
+      "2026-09-03": 11
+    },
+    "clicksByLink": {
+      "5ebc8cac-b15e-4774-8725-2712cb68575b": 2
+    },
+    "clicksByDay": {
+      "2026-09-03": 2
+    },
+    "lastUpdate": "2026-09-03T13:52:05.407Z",
+    "analytics": {},
+    "viewSessions": {
+      "193cabae-5098-4f12-b21d-b245864f901f": 1788443182802
+    },
+    "activity": [
+      {
+        "type": "music-play",
+        "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
+        "at": "2026-09-03T13:52:05.407Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T13:51:49.176Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T13:51:41.331Z"
+      },
+      {
+        "type": "view",
+        "at": "2026-09-03T13:46:22.802Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
+        "at": "2026-09-03T12:32:07.508Z"
+      },
+      {
+        "type": "view",
+        "at": "2026-09-03T12:32:04.356Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
+        "at": "2026-09-03T12:01:24.542Z"
+      },
+      {
+        "type": "view",
+        "at": "2026-09-03T12:01:05.019Z"
+      },
+      {
+        "type": "view",
+        "at": "2026-09-03T11:19:28.599Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
+        "at": "2026-09-03T11:15:19.487Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+        "at": "2026-09-03T11:15:08.702Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+        "at": "2026-09-03T11:15:03.615Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+        "at": "2026-09-03T11:12:35.509Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+        "at": "2026-09-03T11:12:33.424Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T11:11:06.121Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T11:10:16.405Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T11:08:10.217Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T11:08:10.179Z"
+      },
+      {
+        "type": "click",
+        "linkId": "5ebc8cac-b15e-4774-8725-2712cb68575b",
+        "at": "2026-09-03T11:07:31.773Z"
+      },
+      {
+        "type": "music-play",
+        "trackId": "ba93506d-999e-4efb-8154-c04e0619fa62",
+        "at": "2026-09-03T11:07:30.481Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T11:07:19.269Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T10:59:32.551Z"
+      },
+      {
+        "type": "profile-update",
+        "at": "2026-09-03T10:59:32.469Z"
+      }
+    ]
+  },
+  "settings": {
+    "publicEnabled": true,
+    "adminSessionHours": 12,
+    "performanceMode": true
+  },
+  "background": {
+    "enabled": true,
+    "preset": "cosmic-energy",
+    "intensity": 1,
+    "speed": 0.3,
+    "opacity": 0.9,
+    "quality": "medium",
+    "performanceMode": true,
+    "interaction": true,
+    "settings": {}
+  },
+  "profileCard": {
+    "enabled": true,
+    "mode": "transparent",
+    "backgroundColor": "#000000",
+    "opacity": 0.25,
+    "borderColor": "#ffffff",
+    "borderOpacity": 0.2,
+    "borderWidth": 1,
+    "borderRadius": 50,
+    "blur": 30,
+    "backdropBlur": 16,
+    "shadow": true,
+    "shadowOpacity": 0,
+    "shadowIntensity": 0.35,
+    "innerShadow": true,
+    "glow": true,
+    "glowColor": "#22c55e",
+    "glowIntensity": 0.4,
+    "gradientBorder": true,
+    "softGlow": true,
+    "hoverGlow": true,
+    "hoverScale": true,
+    "animation": "fade",
+    "animationEnabled": true,
+    "animationSpeed": 0.5,
+    "animationIntensity": 1,
+    "hoverEffect": "none"
+  }
+}

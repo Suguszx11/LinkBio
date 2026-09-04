@@ -1,0 +1,24 @@
+[
+  {
+    "id": "5ebc8cac-b15e-4774-8725-2712cb68575b",
+    "title": "Instagram.com",
+    "description": "",
+    "url": "https://www.instagram.com/dekkhong_09/",
+    "icon": "instagram",
+    "iconKey": "instagram",
+    "iconAuto": true,
+    "iconColor": "",
+    "badge": "ฟอลมาน้องๆ",
+    "enabled": true,
+    "visible": true,
+    "openNewTab": true,
+    "confirm": true,
+    "hover": "float",
+    "style": "Gradient Border",
+    "startAt": "",
+    "endAt": "",
+    "timezone": "Asia/Bangkok",
+    "clicks": 0,
+    "createdAt": "2026-09-03T10:21:00.471Z"
+  }
+]

@@ -1,7 +1,7 @@
 *{box-sizing:border-box}
 :root{--accent:#a78bfa;--bg:#07070c;--card:rgba(13,12,22,.72)}
 html,body{min-height:100%;margin:0}.site-icon svg{display:block!important;width:16px!important;height:16px!important}
-body{color:#f8f7ff;font-family:Inter,Prompt,system-ui,sans-serif;background:var(--bg);overflow-x:hidden;cursor:none}button,a,input,textarea,select{cursor:none}.mouse-dot{position:fixed;left:0;top:0;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--accent),0 0 18px color-mix(in srgb,var(--accent),transparent 45%);pointer-events:none;z-index:99999;will-change:transform}.mouse-dot~.bg,.mouse-dot~.page{cursor:none}
+body{color:#f8f7ff;font-family:"Prompt","Inter","Segoe UI",Tahoma,Arial,sans-serif;background:var(--bg);overflow-x:hidden;cursor:none}button,a,input,textarea,select{font-family:inherit;cursor:none}.mouse-dot{position:fixed;left:0;top:0;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 10px var(--accent),0 0 18px color-mix(in srgb,var(--accent),transparent 45%);pointer-events:none;z-index:99999;will-change:transform}.mouse-dot~.bg,.mouse-dot~.page{cursor:none}
 .bg{position:fixed;inset:0;z-index:-2;background:radial-gradient(circle at 50% 0%,#4b1c77 0,#171025 32%,var(--bg) 72%)}
 .bg:after{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,0,153,.09),rgba(0,220,255,.07))}
 .page{min-height:100vh;display:grid;place-items:center;padding:36px 16px}

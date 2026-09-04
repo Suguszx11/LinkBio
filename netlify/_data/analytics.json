@@ -1,8 +1,7 @@
 {
-  "profileViews": 12,
+  "profileViews": 10,
   "viewsByDay": {
-    "2026-09-03": 11,
-    "2026-09-04": 1
+    "2026-09-03": 10
   },
   "clicksByLink": {
     "5ebc8cac-b15e-4774-8725-2712cb68575b": 2
@@ -10,38 +9,12 @@
   "clicksByDay": {
     "2026-09-03": 2
   },
-  "lastUpdate": "2026-09-04T09:02:07.161Z",
+  "lastUpdate": "2026-09-03T12:32:07.508Z",
   "analytics": {},
   "viewSessions": {
-    "193cabae-5098-4f12-b21d-b245864f901f": 1788512527161
+    "193cabae-5098-4f12-b21d-b245864f901f": 1788438724355
   },
   "activity": [
-    {
-      "type": "view",
-      "at": "2026-09-04T09:02:07.161Z"
-    },
-    {
-      "type": "music-play",
-      "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
-      "at": "2026-09-03T14:05:27.426Z"
-    },
-    {
-      "type": "music-play",
-      "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",
-      "at": "2026-09-03T13:52:05.407Z"
-    },
-    {
-      "type": "profile-update",
-      "at": "2026-09-03T13:51:49.176Z"
-    },
-    {
-      "type": "profile-update",
-      "at": "2026-09-03T13:51:41.331Z"
-    },
-    {
-      "type": "view",
-      "at": "2026-09-03T13:46:22.802Z"
-    },
     {
       "type": "music-play",
       "trackId": "1f0df065-8661-4219-b159-4163ccd7856b",

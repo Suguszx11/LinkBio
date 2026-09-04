@@ -1,0 +1,9 @@
+{
+  "name": "linkbio-netlify",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {
+    "@netlify/blobs": "^10.4.0",
+    "busboy": "^1.6.0"
+  }
+}

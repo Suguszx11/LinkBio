@@ -1,16 +1,61 @@
 [build]
-publish = "."
-functions = "functions"
+  publish = "."
+  functions = "functions"
 
 [functions]
-node_bundler = "esbuild"
+  node_bundler = "esbuild"
 
 [[redirects]]
-from = "/api/*"
-to = "/.netlify/functions/api/:splat"
-status = 200
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
 
 [[redirects]]
-from = "/*"
-to = "/index.html"
-status = 200
+  from = "/admin"
+  to = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin.html"
+  to = "/admin/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/profile"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/u/*"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/database/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/_data/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/server.js"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/package*.json"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/.env*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
