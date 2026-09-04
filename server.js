@@ -35,11 +35,96 @@ app.disable('x-powered-by');app.use(express.json({limit:'2mb'}));app.use(express
 app.use('/uploads',express.static(UP));app.use('/admin',express.static(path.join(ROOT,'frontend','admin')));app.use('/profile',express.static(path.join(ROOT,'frontend','profile')));app.use('/music-player',express.static(path.join(ROOT,'frontend','music-player')));app.use('/visualizer',express.static(path.join(ROOT,'frontend','visualizer')));
 // Root deploy assets: keep the public site self-contained for Netlify and localhost.
 app.get('/style.css',(q,r)=>r.sendFile(path.join(ROOT,'style.css')));app.get('/app.js',(q,r)=>r.sendFile(path.join(ROOT,'app.js')));
+
+const { enabled: supabaseEnabled, supabase } = require('./lib/supabase');
+const { createClient } = require('@supabase/supabase-js');
+const serviceKey=String(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
+const adminClient=(process.env.SUPABASE_URL&&serviceKey)?createClient(process.env.SUPABASE_URL,serviceKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
+const userSessions=new Map();
+const PUBLIC_SECTIONS=['profile','links','music','appearance','visualizer','branding','profileCard','background'];
+function publicUsername(req){const q=String(req.query?.username||'').trim().replace(/^@/,'');if(q)return q;const ref=String(req.headers.referer||'');const m=ref.match(/\/u\/([^/?#]+)/);return m?decodeURIComponent(m[1]):'';}
+async function findUserByUsername(username){if(!supabaseEnabled||!supabase)return null;const {data,error}=await supabase.from('public_profiles').select('user_id,data,updated_at').ilike('data->>username',username).maybeSingle();if(error)throw error;return data||null;}
+async function sectionsFor(userId){const {data,error}=await supabase.from('user_data').select('section,data').eq('user_id',userId).in('section',PUBLIC_SECTIONS);if(error)throw error;const out={};for(const row of data||[])out[row.section]=row.data;return out;}
+async function sectionFor(userId,section,fallback={}){const {data,error}=await supabase.from('user_data').select('data').eq('user_id',userId).eq('section',section).maybeSingle();if(error)throw error;return data?.data??fallback;}
+async function saveSection(userId,section,value){const {data,error}=await supabase.from('user_data').upsert({user_id:userId,section,data:value},{onConflict:'user_id,section'}).select('data').single();if(error)throw error;return data.data;}
+async function resolveSession(req){const token=cookies(req).linkbio_session;const s=token&&userSessions.get(token);if(s&&s.exp>Date.now())return s.userId;if(s)userSessions.delete(token);return null;}
+let ownerUserId=null;
+async function getOwnerId(){
+ if(ownerUserId)return ownerUserId;if(!adminClient)return null;
+ const email=String(process.env.SUPABASE_OWNER_EMAIL||'owner@linkbio.local').trim().toLowerCase();
+ const {data,error}=await adminClient.auth.admin.listUsers({page:1,perPage:1000});if(error)throw error;
+ ownerUserId=(data.users||[]).find(u=>u.email?.toLowerCase()===email)?.id||null;return ownerUserId;
+}
+async function resolveUser(req,allowPublic=true){
+ const sid=await resolveSession(req);if(sid)return sid;
+ if(!allowPublic)return null;
+ const username=publicUsername(req);if(username){const p=await findUserByUsername(username);return p?.user_id||null;}
+ return getOwnerId();
+}
+async function requireOwner(req,res){if(!supabaseEnabled||!adminClient)return {error:'Supabase server key is not configured'};const id=await resolveUser(req,false);if(!id)return {error:'กรุณาเข้าสู่ระบบ'};return {id};}
+function publicPayload(s){return {success:true,profile:{...(s.profile||{}),links:s.links||[],music:s.music||[],appearance:s.appearance||{},visualizer:s.visualizer||{},branding:s.branding||{},profileCard:s.profileCard||{},backgroundSettings:s.background||{}}};}
+async function handleSupabase(req,res,next){
+  if(!supabaseEnabled||!supabase)return next();
+  try{
+    if(req.path==='/api/admin/me'&&req.method==='GET'){const id=await resolveSession(req);return res.json({success:true,loggedIn:Boolean(id)});}
+    if(req.path==='/api/admin/logout'&&req.method==='POST'){const t=cookies(req).linkbio_session;if(t)userSessions.delete(t);res.setHeader(String.fromCharCode(83,101,116,45,67,111,111,107,105,101),'linkbio_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');return res.json({success:true});}
+    if(req.path==='/api/auth/register'&&req.method==='POST'){
+      if(!adminClient)return res.status(503).json({success:false,message:'ระบบบัญชียังไม่ได้ตั้งค่า Service Role'});
+      const email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),username=String(req.body?.username||'').trim().replace(/^@/,'');
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||password.length<8||!/^[a-zA-Z0-9._-]{2,40}$/.test(username))return res.status(400).json({success:false,message:'Email, Password หรือ Username ไม่ถูกต้อง'});
+      const existing=await findUserByUsername(username);if(existing)return res.status(409).json({success:false,message:'Username นี้ถูกใช้งานแล้ว'});
+      const created=await adminClient.auth.admin.createUser({email,password,email_confirm:true});if(created.error)throw created.error;const u=created.user;
+      const base=clone(defaults);base.profile.username=username;base.profile.name=String(req.body?.name||username).slice(0,80);base.profile.displayName=base.profile.name;base.profile.email=email;
+      for(const [section,value] of Object.entries(base)){if(['analytics','settings'].includes(section))continue;await saveSection(u.id,section,value);}
+      await saveSection(u.id,'analytics',clone(defaults.analytics));await saveSection(u.id,'settings',clone(defaults.settings));
+      const token=crypto.randomBytes(48).toString('hex');userSessions.set(token,{userId:u.id,exp:Date.now()+30*24*3600000});res.setHeader(String.fromCharCode(83,101,116,45,67,111,111,107,105,101),'linkbio_session='+token+'; HttpOnly; Path=/; SameSite=Lax; Max-Age=2592000');return res.json({success:true,user:{id:u.id,email,username}});
+    }
+    if(req.path==='/api/auth/login'&&req.method==='POST'){
+      if(!adminClient)return res.status(503).json({success:false,message:'ระบบบัญชียังไม่ได้ตั้งค่า Service Role'});
+      const email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||'');const auth=await adminClient.auth.signInWithPassword({email,password});if(auth.error) return res.status(401).json({success:false,message:'อีเมลหรือรหัสผ่านไม่ถูกต้อง'});const u=auth.data.user;
+      const p=await sectionFor(u.id,'profile',clone(defaults.profile));const token=crypto.randomBytes(48).toString('hex');userSessions.set(token,{userId:u.id,exp:Date.now()+30*24*3600000});res.setHeader(String.fromCharCode(83,101,116,45,67,111,111,107,105,101),'linkbio_session='+token+'; HttpOnly; Path=/; SameSite=Lax; Max-Age=43200');return res.json({success:true,user:{id:u.id,email:u.email,username:p.username}});
+    }
+    if(req.path==='/api/auth/me'&&req.method==='GET'){const id=await resolveSession(req);if(!id)return res.json({success:true,loggedIn:false});const p=await sectionFor(id,'profile',{});return res.json({success:true,loggedIn:true,user:{id,username:p.username,email:p.email||''}})}
+    if(req.path==='/api/auth/logout'&&req.method==='POST'){const t=cookies(req).linkbio_session;if(t)userSessions.delete(t);res.setHeader('Set-Cookie','linkbio_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');return res.json({success:true})}
+    if(req.path==='/api/profile'&&req.method==='GET'){
+      const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});const s=await sectionsFor(id);return res.json(publicPayload(s));
+    }
+    if(req.path==='/api/profile/stream'&&req.method==='GET')return next();
+    if(req.path==='/api/analytics/view'&&req.method==='POST'){
+      const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});const a=await sectionFor(id,'analytics',clone(defaults.analytics));const token=String(req.body?.sessionId||'').slice(0,120),seen=a.viewSessions||{},now=Date.now();if(!token)return res.status(400).json({success:false,message:'ต้องมี Session ID'});if(seen[token]&&now-Number(seen[token])<1800000)return res.json({success:true,counted:false,totalViews:a.profileViews||0});seen[token]=now;for(const k of Object.keys(seen))if(now-Number(seen[k])>86400000)delete seen[k];a.viewSessions=seen;a.profileViews=(a.profileViews||0)+1;a.viewsByDay=a.viewsByDay||{};const d=new Date().toISOString().slice(0,10);a.viewsByDay[d]=(a.viewsByDay[d]||0)+1;a.activity=[{type:'view',at:new Date().toISOString()}].concat(a.activity||[]).slice(0,100);a.lastUpdate=new Date().toISOString();await saveSection(id,'analytics',a);return res.json({success:true,counted:true,totalViews:a.profileViews});
+    }
+    const protectedSections={
+      '/api/profile':'profile','/api/links':'links','/api/music':'music','/api/appearance':'appearance','/api/visualizer':'visualizer','/api/branding':'branding','/api/profile-card':'profileCard','/api/background':'background','/api/settings':'settings','/api/analytics':'analytics'
+    };
+    const isWrite=['POST','PUT','PATCH','DELETE'].includes(req.method);
+    if(protectedSections[req.path] && isWrite){const own=await requireOwner(req,res);if(own.error)return res.status(401).json({success:false,message:own.error});const id=own.id;let section=protectedSections[req.path];let value=await sectionFor(id,section,clone(defaults[section]||{}));
+      if(req.path==='/api/profile'&&req.method==='PUT'){value={...value,...req.body,username:String(req.body?.username||value.username).replace(/^@/,'')};if(!/^[a-zA-Z0-9._-]{2,40}$/.test(value.username))return res.status(400).json({success:false,message:'Username ไม่ถูกต้อง'});value.verifiedIcon='✓';value.verifiedText='';value.verifiedPosition='inline';await saveSection(id,'profile',value);return res.json({success:true,message:'ปรับเรียบร้อยแล้ว',profile:value});}
+      if((req.path==='/api/links'||req.path.startsWith('/api/links/'))){let arr=value||[];if(req.method==='POST'){const b=req.body||{};if(!clean(b.title,80)||!urlOK(b.url))return res.status(400).json({success:false,message:'ชื่อหรือ URL ไม่ถูกต้อง'});const n={...b,id:crypto.randomUUID(),title:clean(b.title,80),description:clean(b.description,180),url:b.url,icon:b.icon||siteIcon(b.url),iconKey:siteIcon(b.url),iconAuto:b.iconAuto!==false,enabled:b.enabled!==false,visible:b.visible!==false,openNewTab:b.openNewTab!==false,confirm:b.confirm===true,createdAt:new Date().toISOString()};arr=[...arr,n];await saveSection(id,'links',arr);return res.status(201).json({success:true,link:n,links:arr});}
+        if(req.method==='PUT'&&req.params.id==='reorder'){arr=(req.body.links||[]).map((x,i)=>({...x,order:i}));await saveSection(id,'links',arr);return res.json({success:true,links:arr});}
+        const idx=arr.findIndex(x=>x.id===req.params.id);if(idx<0)return res.status(404).json({success:false,message:'ไม่พบ Link'});if(req.method==='DELETE')arr.splice(idx,1);else {arr[idx]={...arr[idx],...req.body,id:arr[idx].id};if(arr[idx].iconAuto!==false){arr[idx].iconKey=siteIcon(arr[idx].url);arr[idx].icon=arr[idx].iconKey;}}await saveSection(id,'links',arr);return res.json({success:true,link:arr[idx],links:arr});
+      }
+      if(req.path==='/api/music'){let arr=value||[];if(req.method==='POST')return next();}
+      if(req.path==='/api/music/youtube'&&req.method==='POST'){const idv=yt(req.body?.url);if(!idv)return res.status(400).json({success:false,message:'YouTube URL ไม่ถูกต้อง'});const n={id:crypto.randomUUID(),type:'youtube',youtubeId:idv,url:'https://www.youtube.com/watch?v='+idv,thumbnail:'https://i.ytimg.com/vi/'+idv+'/hqdefault.jpg',title:clean(req.body?.title,120)||'YouTube Track',artist:clean(req.body?.artist,80),enabled:true,order:(value||[]).length,createdAt:new Date().toISOString()};const arr=[...(value||[]),n];await saveSection(id,'music',arr);return res.status(201).json({success:true,track:n,music:arr});}
+      if(req.path==='/api/music'&&req.method==='PUT'&&req.params.id==='reorder'){const arr=(req.body.music||[]).map((x,i)=>({...x,order:i}));await saveSection(id,'music',arr);return res.json({success:true,music:arr});}
+      if(req.path==='/api/music/:id'){}
+      if(['PUT','PATCH'].includes(req.method)){value={...value,...req.body};await saveSection(id,section,value);return res.json({success:true,message:'ปรับเรียบร้อยแล้ว',[section]:value});}
+      if(req.method==='DELETE'){return res.status(405).json({success:false,message:'ลบรายการผ่าน endpoint เฉพาะ'});}
+    }
+    if(req.path==='/api/links/:id/click'&&req.method==='POST'){const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});const a=await sectionFor(id,'analytics',clone(defaults.analytics));a.clicksByLink=a.clicksByLink||{};a.clicksByDay=a.clicksByDay||{};a.clicksByLink[req.params.id]=(a.clicksByLink[req.params.id]||0)+1;const d=new Date().toISOString().slice(0,10);a.clicksByDay[d]=(a.clicksByDay[d]||0)+1;a.activity=[{type:'click',linkId:req.params.id,at:new Date().toISOString()}].concat(a.activity||[]).slice(0,100);a.lastUpdate=new Date().toISOString();await saveSection(id,'analytics',a);return res.json({success:true,clicks:a.clicksByLink[req.params.id]});}
+    if(req.path==='/api/analytics/music-play'&&req.method==='POST'){const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});const a=await sectionFor(id,'analytics',clone(defaults.analytics));a.activity=[{type:'music-play',trackId:clean(req.body?.trackId,100),at:new Date().toISOString()}].concat(a.activity||[]).slice(0,100);a.lastUpdate=new Date().toISOString();await saveSection(id,'analytics',a);return res.json({success:true});}
+    if(req.path==='/api/profile-card'&&req.method==='GET'){const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});return res.json({success:true,profileCard:await sectionFor(id,'profileCard',clone(defaults.profileCard))});}
+    if(req.path==='/api/background'&&req.method==='GET'){const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});return res.json({success:true,background:await sectionFor(id,'background',clone(defaults.background))});}
+    if(req.path==='/api/analytics'&&req.method==='GET'){const own=await requireOwner(req,res);if(own.error)return res.status(401).json({success:false,message:own.error});const a=await sectionFor(own.id,'analytics',clone(defaults.analytics)),l=await sectionFor(own.id,'links',[]),m=await sectionFor(own.id,'music',[]),clicks=a.clicksByLink||{};return res.json({success:true,totalProfileViews:a.profileViews||0,todayViews:(a.viewsByDay||{})[new Date().toISOString().slice(0,10)]||0,weeklyViews:Object.values(a.viewsByDay||{}).reduce((s,v)=>s+Number(v||0),0),monthlyViews:Object.values(a.viewsByDay||{}).reduce((s,v)=>s+Number(v||0),0),totalLinkClicks:Object.values(clicks).reduce((s,v)=>s+Number(v||0),0),todayClicks:(a.clicksByDay||{})[new Date().toISOString().slice(0,10)]||0,topLinks:l.map(x=>({...x,clicks:clicks[x.id]||0})).sort((x,y)=>y.clicks-x.clicks).slice(0,10),musicTracks:m.length,localMusic:m.filter(x=>x.type==='local').length,youtubeMusic:m.filter(x=>x.type==='youtube').length,_viewsByDay:a.viewsByDay||{},serverStatus:'online',apiStatus:'online',storageUsage:0,uploadCount:m.filter(x=>x.type==='local').length,recentActivity:(a.activity||[]).slice(0,20),lastUpdate:a.lastUpdate||null});}
+    return next();
+  }catch(e){console.error('Supabase middleware:',e);return res.status(500).json({success:false,message:e.message||'Supabase error'});}
+}
+app.use(handleSupabase);
+
 const sessions=new Map();const ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||'adminsuguszx11';
 function cookies(req){return Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>x.trim().split('=').map(decodeURIComponent)).filter(x=>x.length===2))}
 function admin(req){const t=cookies(req).linkbio_admin,s=sessions.get(t);if(!s)return false;if(Date.now()>s.exp){sessions.delete(t);return false}return true}
 function guard(req,res,next){if(!admin(req))return res.status(401).json({success:false,message:'กรุณาเข้าสู่ระบบ Admin'});next()}
-app.get('/',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/u/:username',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/admin.html',(_q,r)=>r.sendFile(path.join(ROOT,'frontend','admin','index.html')));
+app.get('/',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/u/:username',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/admin.html',(_q,r)=>r.sendFile(path.join(ROOT,'frontend','admin','index.html')));app.get('/register.html',(_q,r)=>r.sendFile(path.join(ROOT,'register.html')));
 app.post('/api/admin/login',(req,res)=>{const p=String(req.body?.password||'');const a=Buffer.from(p),b=Buffer.from(ADMIN_PASSWORD);if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return res.status(401).json({success:false,message:'รหัสผ่านไม่ถูกต้อง'});const token=crypto.randomBytes(48).toString('hex');sessions.set(token,{exp:Date.now()+12*3600000});res.setHeader('Set-Cookie',`linkbio_admin=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=43200`);res.json({success:true})});
 app.get('/api/admin/me',(q,r)=>r.json({success:true,loggedIn:admin(q)}));app.post('/api/admin/logout',(q,r)=>{const t=cookies(q).linkbio_admin;if(t)sessions.delete(t);r.setHeader('Set-Cookie','linkbio_admin=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');r.json({success:true})});
 app.get('/api/profile',(req,res)=>{const s=publicSnapshot();res.set('Cache-Control','no-store');res.json({success:true,profile:{...s.profile,links:s.links,music:s.music,appearance:s.appearance,visualizer:s.visualizer,branding:s.branding,profileCard:s.profileCard,backgroundSettings:s.backgroundSettings}})});
