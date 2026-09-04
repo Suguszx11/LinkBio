@@ -10,6 +10,7 @@
     "build": "node -e \"console.log('LinkBio: no build step required (Express + Vanilla JS).')\""
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.115.0",
     "express": "^5.1.0",
     "multer": "^2.0.2"
   }
