@@ -16,68 +16,54 @@ function renderLivePreview(){const card=$('#pcPreviewCard');if(!card)return;card
 function bindManipulation(wrap,index){
   const get=()=>normalize()[index];
   let drag=null;
+  const point=e=>({x:e.clientX,y:e.clientY});
   const cleanup=()=>{
     if(!drag)return;
-    window.removeEventListener('mousemove',drag.move);
-    window.removeEventListener('mouseup',drag.up);
-    window.removeEventListener('touchmove',drag.touchMove);
-    window.removeEventListener('touchend',drag.touchUp);
+    try{if(drag.pointerId!=null)wrap.releasePointerCapture?.(drag.pointerId)}catch{}
     wrap.classList.remove('dragging','resizing','rotating');
     window.getSelection?.()?.removeAllRanges();
     drag=null;
   };
-  const point=e=>{
-    const t=e.touches?.[0]||e.changedTouches?.[0]||e;
-    return {x:t.clientX,y:t.clientY};
-  };
   const begin=(mode,e)=>{
-    if(e.button!==undefined&&e.button!==0)return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
     e.preventDefault();e.stopPropagation();
-    cleanup();active=index;syncControls();
+    cleanup();active=index;
     const g=get();if(!g)return;
     const p=point(e),sx=p.x,sy=p.y,bx=g.x,by=g.y,base=g.size,baseRotation=g.rotation;
     const rect=wrap.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
     const startAngle=Math.atan2(sy-cy,sx-cx)*180/Math.PI;
+    drag={pointerId:e.pointerId,mode,sx,sy,bx,by,base,baseRotation,cx,cy,startAngle};
     wrap.classList.add(mode);
-    const move=ev=>{
-      ev.preventDefault();
-      const q=point(ev);
-      if(mode==='dragging'){
-        g.x=Math.max(-360,Math.min(360,Math.round(bx+q.x-sx)));
-        g.y=Math.max(-360,Math.min(360,Math.round(by+q.y-sy)));
-      }else if(mode==='resizing'){
-        g.size=Math.max(24,Math.min(360,Math.round(base+((q.x-sx)+(q.y-sy))/2)));
-      }else{
-        const angle=Math.atan2(q.y-cy,q.x-cx)*180/Math.PI;
-        let delta=angle-startAngle;
-        if(delta>180)delta-=360;if(delta<-180)delta+=360;
-        g.rotation=Math.max(-180,Math.min(180,Math.round(baseRotation+delta)));
-      }
-      apply(wrap,g);syncControls();
-    };
-    const up=ev=>{if(ev?.preventDefault)ev.preventDefault();cleanup()};
-    const touchMove=ev=>move(ev),touchUp=ev=>up(ev);
-    drag={move,up,touchMove,touchUp};
-    window.addEventListener('mousemove',move,{passive:false});
-    window.addEventListener('mouseup',up,{passive:false});
-    window.addEventListener('touchmove',touchMove,{passive:false});
-    window.addEventListener('touchend',touchUp,{passive:false});
+    try{wrap.setPointerCapture?.(e.pointerId)}catch{}
   };
-  wrap.addEventListener('mousedown',e=>{
-    if(e.target.closest('.gif-resize-handle,.gif-rotate-handle'))return;
-    begin('dragging',e);
-  });
-  wrap.addEventListener('touchstart',e=>{
-    if(e.target.closest('.gif-resize-handle,.gif-rotate-handle'))return;
-    begin('dragging',e);
-  },{passive:false});
-  const resize=wrap.querySelector('.gif-resize-handle');
-  resize?.addEventListener('mousedown',e=>begin('resizing',e));
-  resize?.addEventListener('touchstart',e=>begin('resizing',e),{passive:false});
-  const rotate=wrap.querySelector('.gif-rotate-handle');
-  rotate?.addEventListener('mousedown',e=>begin('rotating',e));
-  rotate?.addEventListener('touchstart',e=>begin('rotating',e),{passive:false});
-}function renderResults(items){const box=$('#gifResults');if(!box)return;box.innerHTML=items.length?items.map(g=>`<button type="button" class="gif-result" data-gif-id="${esc(g.id)}"><img loading="lazy" src="${esc(g.previewUrl)}" alt=""><span>${esc(g.title||'GIF')}</span></button>`).join(''):'<div class="gif-empty">ไม่พบ GIF ที่ตรงกับคำค้น</div>';box.querySelectorAll('[data-gif-id]').forEach(b=>b.onclick=()=>{const g=items.find(x=>x.id===b.dataset.gifId);if(g)addGif(g)})}
+  const move=e=>{
+    if(!drag||e.pointerId!==drag.pointerId)return;
+    e.preventDefault();
+    const g=get();if(!g)return;
+    const q=point(e);
+    if(drag.mode==='dragging'){
+      g.x=Math.max(-360,Math.min(360,Math.round(drag.bx+q.x-drag.sx)));
+      g.y=Math.max(-360,Math.min(360,Math.round(drag.by+q.y-drag.sy)));
+    }else if(drag.mode==='resizing'){
+      g.size=Math.max(24,Math.min(360,Math.round(drag.base+((q.x-drag.sx)+(q.y-drag.sy))/2)));
+    }else{
+      const angle=Math.atan2(q.y-drag.cy,q.x-drag.cx)*180/Math.PI;
+      let delta=angle-drag.startAngle;if(delta>180)delta-=360;if(delta<-180)delta+=360;
+      g.rotation=Math.max(-180,Math.min(180,Math.round(drag.baseRotation+delta)));
+    }
+    apply(wrap,g);
+    const vals={gifSize:g.size,gifX:g.x,gifY:g.y,gifRotation:g.rotation};
+    Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v});
+  };
+  const up=e=>{if(drag&&e.pointerId===drag.pointerId){e.preventDefault();e.stopPropagation();cleanup()}};
+  wrap.addEventListener('pointerdown',e=>{if(e.target.closest('.gif-resize-handle,.gif-rotate-handle'))return;begin('dragging',e)},{passive:false});
+  wrap.addEventListener('pointermove',move,{passive:false});
+  wrap.addEventListener('pointerup',up,{passive:false});
+  wrap.addEventListener('pointercancel',cleanup);
+  wrap.querySelector('.gif-resize-handle')?.addEventListener('pointerdown',e=>begin('resizing',e),{passive:false});
+  wrap.querySelector('.gif-rotate-handle')?.addEventListener('pointerdown',e=>begin('rotating',e),{passive:false});
+}
+function renderResults(items){const box=$('#gifResults');if(!box)return;box.innerHTML=items.length?items.map(g=>`<button type="button" class="gif-result" data-gif-id="${esc(g.id)}"><img loading="lazy" src="${esc(g.previewUrl)}" alt=""><span>${esc(g.title||'GIF')}</span></button>`).join(''):'<div class="gif-empty">ไม่พบ GIF ที่ตรงกับคำค้น</div>';box.querySelectorAll('[data-gif-id]').forEach(b=>b.onclick=()=>{const g=items.find(x=>x.id===b.dataset.gifId);if(g)addGif(g)})}
 async function search(q){q=String(q||'').trim();if(!q)return toast('กรอกคำค้นหาก่อน');if(!configKey)return toast('ยังไม่ได้ตั้ง GIPHY_API_KEY');const box=$('#gifResults');box.innerHTML='<div class="gif-loading">กำลังค้นหา GIF จำนวนมาก…</div>';try{const u=new URL('https://api.giphy.com/v1/stickers/search');u.searchParams.set('api_key',configKey);u.searchParams.set('q',q);u.searchParams.set('limit','50');u.searchParams.set('rating','g');u.searchParams.set('lang','th');const r=await fetch(u);if(!r.ok)throw Error('GIPHY API error');const d=await r.json();results=(d.data||[]).map(x=>({id:x.id,title:x.title,previewUrl:x.images?.fixed_width?.url||x.images?.downsized?.url,url:x.images?.original?.url||x.images?.fixed_width?.url})).filter(x=>x.previewUrl&&x.url);renderResults(results)}catch(e){box.innerHTML='<div class="gif-empty">เชื่อมต่อ GIPHY ไม่สำเร็จ</div>';toast(e.message)}}
 function bind(){const root=$('#gifStickerStudio');if(!root)return;root.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{const g=selected();if(!g)return;g.size=Math.max(24,Math.min(360,+$('#gifSize').value||72));g.x=Math.max(-360,Math.min(360,+$('#gifX').value||0));g.y=Math.max(-360,Math.min(360,+$('#gifY').value||0));g.rotation=Math.max(-180,Math.min(180,+$('#gifRotation').value||0));g.opacity=Math.max(0,Math.min(1,+$('#gifOpacity').value||0));g.animation=$('#gifAnimation').value;g.animationSpeed=Math.max(.2,Math.min(4,+$('#gifSpeed').value||1));g.position=$('#gifPosition').value;renderLivePreview()}));$('#gifSearchBtn').onclick=()=>search($('#gifQuery').value);$('#gifQuery').onkeydown=e=>{if(e.key==='Enter')search(e.target.value)};root.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{$('#gifQuery').value=b.dataset.q;search(b.dataset.q)});root.querySelectorAll('[data-active]').forEach(b=>b.onclick=e=>{if(e.target.closest('[data-remove]'))return;active=+b.dataset.active;render()});root.querySelectorAll('[data-remove]').forEach(b=>b.onclick=e=>{e.stopPropagation();removeGif(+b.dataset.remove)});$('#gifSave').onclick=async()=>{try{const items=normalize();await api('/api/gif-stickers',{method:'PUT',body:JSON.stringify({enabled:$('#gifEnabled').checked,items})});state={enabled:$('#gifEnabled').checked,items};toast(`บันทึก GIF ${items.length} ตัวแล้ว`)}catch(e){toast(e.message)}};$('#gifClear').onclick=async()=>{try{await api('/api/gif-stickers',{method:'PUT',body:JSON.stringify({enabled:false,items:[]})});state={enabled:false,items:[]};active=0;render()}catch(e){toast(e.message)}}}
 async function init(){if(!location.pathname.includes('/admin'))return;const editor=document.querySelector('.profile-card-editor');if(!editor||$('#gifStickerStudio'))return;try{configKey=(await api('/api/gifs/config')).apiKey||''}catch{}try{state=(await api('/api/gif-stickers')).gifStickers||state}catch{}state.items=normalize();const wrap=document.createElement('div');wrap.id='gifStickerStudio';editor.appendChild(wrap);render()}
