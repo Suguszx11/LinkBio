@@ -27,8 +27,11 @@ window.renderLinkBioGifSticker = function (settings = {}) {
   const el=document.createElement('img'); el.className='profile-gif-sticker'; el.src=settings.url; el.alt=''; el.setAttribute('aria-hidden','true');
   const size=Math.max(24,Math.min(180,Number(settings.size)||72)),x=Math.max(-240,Math.min(240,Number(settings.x)||0)),y=Math.max(-240,Math.min(240,Number(settings.y)||-80)),r=Math.max(-180,Math.min(180,Number(settings.rotation)||0)),o=Math.max(0,Math.min(1,Number(settings.opacity??1))),speed=Math.max(.2,Math.min(4,Number(settings.animationSpeed)||1));
   const pos=settings.position||'card';
-  el.style.setProperty('--gif-anchor-y',pos==='avatar'?'115px':pos==='links'?'68%':'50%');
-  el.style.setProperty('--gif-size',size+'px');el.style.setProperty('--gif-x',x+'px');el.style.setProperty('--gif-y',y+'px');el.style.setProperty('--gif-r',r+'deg');el.style.setProperty('--gif-opacity',o);el.style.setProperty('--gif-speed',speed+'s');el.dataset.animation=settings.animation||'float';el.dataset.position=settings.position||'card';root.appendChild(el);
+  const anchor=pos==='avatar'?root.querySelector('.avatar-wrap'):pos==='links'?root.querySelector('#links'):root;
+  const rr=root.getBoundingClientRect(),ar=(anchor||root).getBoundingClientRect();
+  const ax=ar.left+ar.width/2-rr.left,ay=ar.top+ar.height/2-rr.top;
+  el.style.setProperty('--gif-left',ax+'px');el.style.setProperty('--gif-top',ay+'px');
+  el.style.setProperty('--gif-size',size+'px');el.style.setProperty('--gif-x',x+'px');el.style.setProperty('--gif-y',y+'px');el.style.setProperty('--gif-r',r+'deg');el.style.setProperty('--gif-opacity',o);el.style.setProperty('--gif-speed',speed+'s');el.dataset.animation=settings.animation||'float';el.dataset.position=pos;root.appendChild(el);
 };
 
 window.renderLinkBioSticker = function (settings = {}) {
