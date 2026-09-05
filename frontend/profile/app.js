@@ -29,6 +29,7 @@ if(window.renderLinkBioSticker){
     animationSpeed:1
   });
 }
+if(window.renderLinkBioGifSticker)window.renderLinkBioGifSticker(p.gifStickers||{});
 $('#name').textContent=p.displayName||p.name||'Your Name';$('#username').textContent=p.username?'@'+p.username:'';$('#bio').textContent=p.bio||'';const adminBtn=$('#profileAdminBtn');if(adminBtn)adminBtn.onclick=()=>{const fab=document.querySelector('#supportFab');if(fab)fab.click();};$('#profileMeta').textContent=(p.statusEmoji||'●')+' '+(p.customStatus||p.status||'Online');$('#profileMeta').dataset.status=p.status||'Online';$('#avatar').src=p.avatar||'https://placehold.co/160x160/png?text=ME';
 const badge=$('#badge');if(p.verified){badge.textContent='';badge.title='';badge.style.display='inline-flex';badge.style.color=p.verifiedNeon||p.verifiedColor||'#60a5fa';badge.style.opacity=p.verifiedOpacity??1;badge.style.fontSize=(p.verifiedSize||13)+'px';badge.style.borderRadius='0';badge.style.boxShadow='none';badge.dataset.animation=p.verifiedAnimation||'check';badge.style.animationDuration=(p.verifiedAnimationSpeed||1)+'s'}else{badge.textContent='';badge.title='';badge.style.display='none'}
 const brand=$('#brandBadge');if(brand)brand.remove();

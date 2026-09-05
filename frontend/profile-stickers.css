@@ -55,6 +55,8 @@
   filter:drop-shadow(0 7px 10px rgba(0,0,0,.3));
 }
 
+.profile-gif-sticker{position:absolute;left:50%;top:50%;z-index:30;width:var(--gif-size,72px);height:var(--gif-size,72px);object-fit:contain;pointer-events:none;user-select:none;opacity:var(--gif-opacity,1);transform:translate(calc(-50% + var(--gif-x,0px)),calc(-50% + var(--gif-y,-80px))) rotate(var(--gif-r,0deg));filter:drop-shadow(0 0 12px color-mix(in srgb,var(--accent),transparent 45%));will-change:transform,filter}.profile-gif-sticker[data-animation="float"]{animation:gifFloat calc(var(--gif-speed,1s)*2.2) ease-in-out infinite}.profile-gif-sticker[data-animation="pulse"]{animation:gifPulse calc(var(--gif-speed,1s)*2) ease-in-out infinite}.profile-gif-sticker[data-animation="bounce"]{animation:gifBounce calc(var(--gif-speed,1s)*2) ease-in-out infinite}.profile-gif-sticker[data-animation="spin"]{animation:gifSpin calc(var(--gif-speed,1s)*3) linear infinite}@keyframes gifFloat{50%{margin-top:-7px}}@keyframes gifPulse{50%{scale:1.08;filter:drop-shadow(0 0 22px var(--accent))}}@keyframes gifBounce{50%{margin-top:-12px}}@keyframes gifSpin{to{rotate:360deg}}@media(max-width:480px){.profile-gif-sticker{max-width:38vw;max-height:38vw}}
+
 @media(prefers-reduced-motion:reduce){
   .profile-sticker{
     animation:none!important;

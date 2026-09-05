@@ -1,0 +1,15 @@
+{
+  "enabled": false,
+  "url": "",
+  "previewUrl": "",
+  "title": "",
+  "provider": "giphy",
+  "size": 72,
+  "x": 0,
+  "y": -80,
+  "rotation": 0,
+  "opacity": 1,
+  "animation": "float",
+  "animationSpeed": 1,
+  "position": "card"
+}
