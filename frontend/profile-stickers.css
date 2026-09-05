@@ -62,3 +62,7 @@
     animation:none!important;
   }
 }
+/* Multi GIF Sticker sync */
+.profile-gif-sticker{pointer-events:none;position:absolute;left:var(--gif-left,50%);top:var(--gif-top,50%);z-index:21;width:var(--gif-size,72px);height:var(--gif-size,72px);object-fit:contain;user-select:none;opacity:var(--gif-opacity,1);transform:translate(calc(-50% + var(--gif-x,0px)),calc(-50% + var(--gif-y,0px))) rotate(var(--gif-r,0deg));transform-origin:center;filter:drop-shadow(0 0 12px rgba(168,85,247,.5));will-change:transform}
+.profile-gif-sticker[data-animation="float"]{animation:profileGifFloat calc(2.2s / var(--gif-speed,1)) ease-in-out infinite}.profile-gif-sticker[data-animation="pulse"]{animation:profileGifPulse calc(2s / var(--gif-speed,1)) ease-in-out infinite}.profile-gif-sticker[data-animation="bounce"]{animation:profileGifBounce calc(2s / var(--gif-speed,1)) ease-in-out infinite}.profile-gif-sticker[data-animation="spin"]{animation:profileGifSpin calc(3s / var(--gif-speed,1)) linear infinite}
+@keyframes profileGifFloat{50%{translate:0 -7px}}@keyframes profileGifPulse{50%{scale:1.08}}@keyframes profileGifBounce{50%{translate:0 -12px}}@keyframes profileGifSpin{to{rotate:360deg}}
