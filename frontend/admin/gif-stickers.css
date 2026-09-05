@@ -6,9 +6,10 @@
 @media(max-width:700px){.gif-selected{grid-template-columns:1fr}.gif-results{max-height:360px}}
 
 /* Dedicated mouse interaction layer: the preview card itself must never steal the drag. */
-#pcPreviewCard{overflow:visible!important;pointer-events:none!important}
+#pcPreviewCard{overflow:visible!important;pointer-events:auto!important}
 #pcPreview{overflow:visible!important}
-#pcPreviewCard .admin-gif-manipulator{pointer-events:auto!important;cursor:grab!important}
+.pc-live-preview{overflow:visible!important}
+#pcPreviewCard .admin-gif-manipulator{pointer-events:auto!important;cursor:grab!important;z-index:999!important}
 #pcPreviewCard .admin-gif-manipulator .gif-resize-handle,#pcPreviewCard .admin-gif-manipulator .gif-rotate-handle{pointer-events:auto!important;cursor:pointer!important}
 #pcPreviewCard .admin-gif-manipulator.dragging{cursor:grabbing!important}
 #pcPreviewCard .admin-gif-manipulator.resizing .gif-resize-handle{cursor:nwse-resize!important}
