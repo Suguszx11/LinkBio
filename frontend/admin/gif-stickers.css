@@ -7,8 +7,8 @@
 
 /* Dedicated mouse interaction layer: the preview card itself must never steal the drag. */
 #pcPreviewCard{overflow:visible!important;pointer-events:auto!important}
-#pcPreview{overflow:visible!important}
-.pc-live-preview{overflow:visible!important}
+#pcPreview{overflow:auto!important;overscroll-behavior:contain;scrollbar-width:thin}
+.pc-live-preview{overflow:auto!important;overscroll-behavior:contain;scrollbar-width:thin}
 #pcPreviewCard .admin-gif-manipulator{pointer-events:auto!important;cursor:grab!important;z-index:999!important}
 #pcPreviewCard .admin-gif-manipulator .gif-resize-handle,#pcPreviewCard .admin-gif-manipulator .gif-rotate-handle{pointer-events:auto!important;cursor:pointer!important}
 #pcPreviewCard .admin-gif-manipulator.dragging{cursor:grabbing!important}
