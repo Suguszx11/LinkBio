@@ -61,7 +61,7 @@ async function resolveUser(req,allowPublic=true){
  const username=publicUsername(req);if(username){const p=await findUserByUsername(username);return p?.user_id||null;}
  return getOwnerId();
 }
-async function requireOwner(req,res){if(!supabaseEnabled||!adminClient)return {error:'Supabase server key is not configured'};const id=await resolveUser(req,false);if(!id)return {error:'กรุณาเข้าสู่ระบบ'};return {id};}
+async function requireOwner(req,res){if(!supabaseEnabled||!adminClient)return {error:'Supabase server key is not configured'};const sessionId=await resolveSession(req);if(sessionId)return {id:sessionId};if(typeof admin==='function'&&admin(req)){const id=await getOwnerId();if(id)return {id};}return {error:'กรุณาเข้าสู่ระบบ'};}
 function publicPayload(s){return {success:true,profile:{...(s.profile||{}),links:s.links||[],music:s.music||[],appearance:s.appearance||{},visualizer:s.visualizer||{},branding:s.branding||{},profileCard:s.profileCard||{},backgroundSettings:s.background||{},gifStickers:s.gifStickers||{}}};}
 async function handleSupabase(req,res,next){
   if(!supabaseEnabled||!supabase)return next();
