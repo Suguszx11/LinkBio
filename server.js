@@ -174,7 +174,7 @@ app.post('/api/music/youtube',guard,(q,r)=>{const id=yt(q.body?.url);if(!id)retu
 app.post('/api/admin/upload-avatar',guard,avatarUpload.single('avatar'),(q,r)=>{if(!q.file)return r.status(400).json({success:false,message:'ไฟล์ Avatar ไม่ถูกต้อง'});const p=patch('profile',{avatar:'/uploads/avatars/'+encodeURIComponent(q.file.filename)});r.json({success:true,profile:p})});app.post('/api/admin/upload-cover',guard,coverUpload.single('cover'),(q,r)=>{if(!q.file)return r.status(400).json({success:false,message:'ไฟล์ Cover ไม่ถูกต้อง'});const p=patch('profile',{cover:'/uploads/covers/'+encodeURIComponent(q.file.filename)});r.json({success:true,profile:p})});
 app.get('/api/admin/status',guard,(q,r)=>r.json({success:true,status:'online',serverTime:new Date().toISOString()}));
 const { registerSupport }=require('./support');
-registerSupport(app,{isAdmin:admin});
+registerSupport(app,{isAdmin:admin,resolveSupabaseUser:async token=>{if(!supabase)return null;const {data,error}=await supabase.auth.getUser(token);return error?null:data?.user||null;}});
 app.use((err,q,r,n)=>{console.error(err);if(err instanceof multer.MulterError)return r.status(400).json({success:false,message:'อัปโหลดไม่สำเร็จ: '+err.message});r.status(500).json({success:false,message:'เกิดข้อผิดพลาดในเซิร์ฟเวอร์'})});app.use((q,r)=>r.status(404).json({success:false,message:'ไม่พบ endpoint'}));
 if(require.main===module){app.listen(PORT,()=>console.log(`LinkBio running: http://localhost:${PORT}`));}
 module.exports=app;

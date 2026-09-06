@@ -2,7 +2,7 @@ const fs=require('fs');
 const path=require('path');
 const crypto=require('crypto');
 
-function registerSupport(app,{isAdmin}){
+function registerSupport(app,{isAdmin,resolveSupabaseUser}){
   const dir=path.join(__dirname,'database');
   const ticketsFile=path.join(dir,'support-tickets.json');
   const messagesFile=path.join(dir,'support-messages.json');
@@ -29,6 +29,12 @@ function registerSupport(app,{isAdmin}){
   const publicTicket=t=>({...t,messageCount:messagesFor(t.id).length});
   const emit=(uid,event,payload)=>{const data=`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;for(const res of userClients.get(uid)||[])try{res.write(data)}catch{}};
   const emitAdmin=(event,payload)=>{const data=`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;for(const res of adminClients)try{res.write(data)}catch{}};
+  async function verifySupabaseToken(token){
+    if(!resolveSupabaseUser||!token)throw Error('ไม่พบ LinkBio session');
+    const u=await resolveSupabaseUser(token);
+    if(!u)throw Error('LinkBio session หมดอายุหรือไม่ถูกต้อง');
+    return {uid:u.id,email:u.email||'',displayName:u.user_metadata?.display_name||u.user_metadata?.full_name||'LinkBio User',photoUrl:u.user_metadata?.avatar_url||u.user_metadata?.picture||'',emailVerified:!!u.email_confirmed_at};
+  }
   async function verifyFirebaseToken(token){
     const key=String(process.env.FIREBASE_API_KEY||'AIzaSyCJpSjW6Kb79eDqilEeTfo-gFL_sdzyjHY').trim();
     if(!token)throw Error('ไม่พบ Google session');
@@ -51,7 +57,7 @@ function registerSupport(app,{isAdmin}){
     return 'AI Assistant: รับข้อความแล้วครับ ตอนนี้แอดมินอาจไม่อยู่ ระบบจะเก็บเรื่องไว้และแจ้งแอดมินเมื่อกลับมาออนไลน์ครับ';
   }
 
-  app.post('/api/support/auth',async(req,res)=>{try{const u=await verifyFirebaseToken(String(req.headers.authorization||'').replace(/^Bearer\s+/i,''));const token=crypto.randomBytes(48).toString('hex');supportSessions.set(token,{...u,exp:Date.now()+30*24*3600000});setCookie(res,'linkbio_support',token);res.json({success:true,user:u})}catch(e){res.status(401).json({success:false,message:e.message||'Google login ไม่สำเร็จ'})}});
+  app.post('/api/support/auth',async(req,res)=>{try{const bearer=String(req.headers.authorization||'').replace(/^Bearer\s+/i,'');const u=await verifySupabaseToken(bearer);const token=crypto.randomBytes(48).toString('hex');supportSessions.set(token,{...u,exp:Date.now()+30*24*3600000});setCookie(res,'linkbio_support',token);res.json({success:true,user:{...u,displayName:'@Dekkhong'}})}catch(e){res.status(401).json({success:false,message:e.message||'LinkBio login ไม่สำเร็จ'})}});
   app.get('/api/support/me',(req,res)=>{const s=userFromSession(req);res.json({success:true,loggedIn:!!s,user:s?{uid:s.uid,email:s.email,displayName:s.displayName,photoUrl:s.photoUrl}:null,adminOnline:Date.now()<adminPresenceUntil})});
   app.post('/api/support/logout',(req,res)=>{const t=cookie(req,'linkbio_support');if(t)supportSessions.delete(t);setCookie(res,'linkbio_support','',0);res.json({success:true})});
   app.get('/api/support/presence',(req,res)=>res.json({success:true,online:Date.now()<adminPresenceUntil}));
