@@ -39,7 +39,7 @@ app.get('/style.css',(q,r)=>r.sendFile(path.join(ROOT,'style.css')));app.get('/a
 
 const { enabled: supabaseEnabled, supabase } = require('./lib/supabase');
 const { createClient } = require('@supabase/supabase-js');
-const serviceKey=String(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
+const serviceKey=String(process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
 const adminClient=(process.env.SUPABASE_URL&&serviceKey)?createClient(process.env.SUPABASE_URL,serviceKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 const userSessions=new Map();
 const PUBLIC_SECTIONS=['profile','links','music','appearance','visualizer','branding','profileCard','background','gifStickers'];

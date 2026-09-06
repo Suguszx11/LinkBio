@@ -1,8 +1,9 @@
 const crypto=require('crypto');
 const {createClient}=require('@supabase/supabase-js');
 function registerSupport(app,{isAdmin,resolveSupabaseUser}){
-  const dbReady=!!(process.env.SUPABASE_URL&&process.env.SUPABASE_SERVICE_ROLE_KEY);
-  const db=dbReady?createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
+  const dbKey=String(process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
+  const dbReady=!!(process.env.SUPABASE_URL&&dbKey);
+  const db=dbReady?createClient(process.env.SUPABASE_URL,dbKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
   const sessions=new Map(),userClients=new Map(),adminClients=new Set();let adminPresenceUntil=0;
   const clean=(v,n)=>String(v??'').trim().slice(0,n);
   const cookie=(req,n)=>Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>x.trim().split('=').map(decodeURIComponent)).filter(x=>x.length===2))[n];
