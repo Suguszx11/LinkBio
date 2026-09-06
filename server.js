@@ -77,6 +77,18 @@ async function handleSupabase(req,res,next){
   if(!supabaseEnabled||!supabase)return next();
   try{
     if(req.path==='/api/gifs/config'&&req.method==='GET'){let apiKey=String(process.env.GIPHY_API_KEY||'').trim();if(!apiKey){const owner=await getOwnerId();if(owner){const s=await sectionFor(owner,'settings',{});apiKey=String(s.giphyApiKey||'').trim()}}return res.json({success:true,provider:'giphy',apiKey,rating:'g'});}
+    if(req.path==='/api/giphy/search'&&req.method==='GET'){
+      if(!(admin(req)||await resolveSession(req)))return res.status(401).json({success:false,message:'กรุณาเข้าสู่ระบบ'});
+      let apiKey=String(process.env.GIPHY_API_KEY||'').trim();
+      if(!apiKey){const owner=await getOwnerId();if(owner){const st=await sectionFor(owner,'settings',{});apiKey=String(st.giphyApiKey||'').trim()}}
+      if(!apiKey)return res.status(503).json({success:false,message:'ยังไม่ได้ตั้ง GIPHY API Key'});
+      const q=String(req.query?.q||'').trim().slice(0,60);const limit=Math.min(50,Math.max(1,Number(req.query?.limit)||24));
+      if(!q)return res.status(400).json({success:false,message:'ต้องมีคำค้น'});
+      const u=new URL('https://api.giphy.com/v1/stickers/search');u.searchParams.set('api_key',apiKey);u.searchParams.set('q',q);u.searchParams.set('limit',String(limit));u.searchParams.set('rating','g');u.searchParams.set('lang','th');
+      const gr=await fetch(u);const text=await gr.text();if(!gr.ok)return res.status(502).json({success:false,message:'GIPHY API ตอบกลับผิดพลาด',status:gr.status});
+      let data;try{data=JSON.parse(text)}catch{return res.status(502).json({success:false,message:'GIPHY ตอบกลับไม่ใช่ JSON'})}
+      return res.json({success:true,data:data.data||[],pagination:data.pagination||{}});
+    }
     if(req.path==='/api/gif-stickers'&&req.method==='GET'){const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});return res.json({success:true,gifStickers:await sectionFor(id,'gifStickers',clone(defaults.gifStickers))});}
     if(req.path==='/api/admin/me'&&req.method==='GET'){const id=await resolveSession(req);return res.json({success:true,loggedIn:Boolean(id)});}
     if(req.path==='/api/admin/logout'&&req.method==='POST'){const t=cookies(req).linkbio_session;if(t)userSessions.delete(t);res.setHeader(String.fromCharCode(83,101,116,45,67,111,111,107,105,101),'linkbio_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');return res.json({success:true});}
