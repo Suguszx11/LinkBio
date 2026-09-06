@@ -8,7 +8,8 @@ const checks=[
  ['Music API','/api/music'],['Profile Card','/api/profile-card'],['Background API','/api/background'],
  ['Appearance API','/api/appearance'],['Visualizer API','/api/visualizer'],['Branding API','/api/branding'],
  ['Settings API','/api/settings'],['GIF Stickers','/api/gif-stickers'],
- ['GIPHY Proxy','/api/giphy/search?q=sparkle&limit=1'],['Support API','/api/support'],['Public Profile','/profile']
+ ['GIPHY Config','/api/gifs/config'],['GIPHY Proxy','/api/giphy/search?q=sparkle&limit=1'],
+ ['Support API','/api/support/presence'],['Public Profile','/profile']
 ];
 const LOG_KEY='lb_api_logs',CANDLE_KEY='lb_api_candles',MAX_LOGS=1000;
 let logs=[],samples=[],lastResults=[],running=false,round=0,totalRounds=6,timer=null,filter='ALL',query='';
@@ -54,9 +55,10 @@ function filteredLogs(){
 }
 function summary(){
  const current=lastResults,g=current.filter(x=>x.state==='PASS').length,t=current.length;
- const fails=current.filter(x=>x.state!=='PASS').length;
- const incidents=logs.filter(x=>['FAIL','AUTH','TIMEOUT'].includes(x.state)).length;
- return {g,t,fails,incidents,avg:t?Math.round(current.reduce((s,x)=>s+x.ms,0)/t):0};
+ const auth=current.filter(x=>x.state==='AUTH').length;
+ const fails=current.filter(x=>['FAIL','TIMEOUT'].includes(x.state)).length;
+ const incidents=logs.filter(x=>['FAIL','TIMEOUT'].includes(x.state)).length;
+ return {g,t,auth,fails,incidents,avg:t?Math.round(current.reduce((s,x)=>s+x.ms,0)/t):0};
 }
 function logRows(){
  const rows=filteredLogs().slice(0,100);
@@ -65,11 +67,11 @@ function logRows(){
 }
 function render(){
  const s=summary(),r=lastResults;
- return `<section class="api-monitor"><div class="api-monitor-head"><div><div class="eyebrow">SYSTEM HEALTH</div><h2>API Monitor</h2><p>Deep Scan 60 วินาที • ${round}/${totalRounds} รอบ • หลังจากนั้นตรวจอัตโนมัติทุก 30 วินาที</p></div><div class="api-monitor-actions"><span class="api-health ${s.g===s.t&&s.t?'good':'bad'}"><i></i>${s.g}/${s.t} API ปกติ</span><button id="apiCheckNow" class="btn btn-primary">⟳ ตรวจสอบใหม่</button></div></div>
+ return `<section class="api-monitor"><div class="api-monitor-head"><div><div class="eyebrow">SYSTEM HEALTH</div><h2>API Monitor</h2><p>Deep Scan 60 วินาที • ${round}/${totalRounds} รอบ • หลังจากนั้นตรวจอัตโนมัติทุก 30 วินาที</p></div><div class="api-monitor-actions"><span class="api-health ${s.fails===0?'good':'bad'}"><i></i>${s.fails===0?'ระบบ API ปกติ':'มี API ผิดปกติ'}</span><button id="apiCheckNow" class="btn btn-primary">⟳ ตรวจสอบใหม่</button></div></div>
  <div class="api-progress"><div style="width:${Math.min(100,round/totalRounds*100)}%"></div></div>
  <div class="api-summary"><div><b>${s.g}/${s.t}</b><span>Healthy</span></div><div><b>${s.avg} ms</b><span>Average latency</span></div><div><b>${logs.length}</b><span>Logs saved</span></div><div class="api-danger"><b>${s.fails}</b><span>Current incidents</span></div></div>
  <div class="api-panel panel"><div class="panel-title"><h3>Latency Candlestick / OHLC</h3><span>เก็บ 30 แท่งล่าสุด</span></div><div class="api-chart-box">${chart()}</div></div>
- <div class="api-panel panel"><div class="panel-title"><h3>Service Status</h3><span>HTTP + latency + error</span></div><div class="api-service-grid">${r.map(x=>`<div class="api-service ${x.state==='PASS'?'ok':'fail'}"><i></i><div><strong>${esc(x.name)}</strong><small>${x.status||'ERR'} • ${x.ms} ms • ${statusLabel(x.state)}${x.detail?' • '+esc(x.detail).slice(0,90):''}</small></div><b>${statusLabel(x.state)}</b></div>`).join('')}</div></div>
+ <div class="api-panel panel"><div class="panel-title"><h3>Service Status</h3><span>HTTP + latency + error</span></div><div class="api-service-grid">${r.map(x=>`<div class="api-service ${x.state==='PASS'?'ok':x.state==='AUTH'?'warn':'fail'}"><i></i><div><strong>${esc(x.name)}</strong><small>${x.status||'ERR'} • ${x.ms} ms • ${statusLabel(x.state)}${x.detail?' • '+esc(x.detail).slice(0,90):''}</small></div><b>${statusLabel(x.state)}</b></div>`).join('')}</div></div>
  <div class="api-panel panel"><div class="panel-title api-log-toolbar"><div><h3>API Logs / Incident History</h3><span>${filteredLogs().length} รายการที่แสดง • สูงสุด ${MAX_LOGS} รายการ</span></div><div class="api-log-actions"><input id="apiLogSearch" class="api-log-search" placeholder="ค้นหา API / error..." value="${esc(query)}"><select id="apiLogFilter"><option value="ALL" ${filter==='ALL'?'selected':''}>ทั้งหมด</option><option value="FAIL" ${filter==='FAIL'?'selected':''}>🔴 FAIL</option><option value="AUTH" ${filter==='AUTH'?'selected':''}>🟡 AUTH</option><option value="TIMEOUT" ${filter==='TIMEOUT'?'selected':''}>⏱ TIMEOUT</option><option value="RECOVERED" ${filter==='RECOVERED'?'selected':''}>🟢 RECOVERED</option><option value="PASS" ${filter==='PASS'?'selected':''}>🟢 PASS</option></select><button id="apiExportJson" class="btn">Export JSON</button><button id="apiExportCsv" class="btn">Export CSV</button><button id="apiClearLogs" class="btn api-danger-btn">ล้าง Logs</button></div></div><div class="api-log-head"><span>เวลา</span><span>สถานะ</span><span>API</span><span>HTTP</span><span>Latency</span><span>รายละเอียด</span></div><div class="api-log-list">${logRows()}</div></div></section>`;
 }
 function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
