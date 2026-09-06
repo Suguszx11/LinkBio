@@ -33,12 +33,13 @@ function yt(v){try{const u=new URL(v);let id=u.searchParams.get('v');if(u.hostna
 function siteIcon(v){try{const h=new URL(/^https?:\/\//i.test(v)?v:'https://'+v).hostname.replace(/^www\./,'').toLowerCase();const m=[['instagram.com','instagram'],['tiktok.com','tiktok'],['youtube.com','youtube'],['youtu.be','youtube'],['facebook.com','facebook'],['x.com','x'],['twitter.com','x'],['discord.com','discord'],['discord.gg','discord'],['twitch.tv','twitch'],['github.com','github'],['telegram.me','telegram'],['t.me','telegram'],['line.me','line'],['spotify.com','spotify'],['steampowered.com','steam'],['reddit.com','reddit'],['pinterest.com','pinterest'],['linkedin.com','linkedin']];return (m.find(([d])=>h===d||h.endsWith('.'+d))||[])[1]||'globe'}catch{return 'globe'}}
 function day(){return new Date().toISOString().slice(0,10)}
 app.disable('x-powered-by');app.use(express.json({limit:'2mb'}));app.use(express.urlencoded({extended:true,limit:'2mb'}));
-app.use('/uploads',express.static(UP));app.use('/admin',express.static(path.join(ROOT,'frontend','admin')));app.use('/profile',express.static(path.join(ROOT,'frontend','profile')));app.get('/profile-stickers.js',(_q,r)=>r.sendFile(path.join(ROOT,'frontend','profile-stickers.js')));app.get('/profile-stickers.css',(_q,r)=>r.sendFile(path.join(ROOT,'frontend','profile-stickers.css')));app.use('/music-player',express.static(path.join(ROOT,'frontend','music-player')));app.use('/visualizer',express.static(path.join(ROOT,'frontend','visualizer')));
+app.use('/uploads',express.static(UP));app.use('/admin',(req,res,next)=>{if(req.path==='/'||req.path==='')return admin(req)?next():res.redirect('/dashboard.html?error=admin');next();},express.static(path.join(ROOT,'frontend','admin')));app.use('/profile',express.static(path.join(ROOT,'frontend','profile')));app.get('/profile-stickers.js',(_q,r)=>r.sendFile(path.join(ROOT,'frontend','profile-stickers.js')));app.get('/profile-stickers.css',(_q,r)=>r.sendFile(path.join(ROOT,'frontend','profile-stickers.css')));app.use('/music-player',express.static(path.join(ROOT,'frontend','music-player')));app.use('/visualizer',express.static(path.join(ROOT,'frontend','visualizer')));
 // Root deploy assets: keep the public site self-contained for Netlify and localhost.
-app.get('/style.css',(q,r)=>r.sendFile(path.join(ROOT,'style.css')));app.get('/app.js',(q,r)=>r.sendFile(path.join(ROOT,'app.js')));
+app.get('/style.css',(q,r)=>r.sendFile(path.join(ROOT,'style.css')));app.get('/app.js',(q,r)=>r.sendFile(path.join(ROOT,'app.js')));app.get('/auth.css',(q,r)=>r.sendFile(path.join(ROOT,'auth.css')));app.get('/auth-ui.js',(q,r)=>r.sendFile(path.join(ROOT,'auth-ui.js')));
 
 const { enabled: supabaseEnabled, supabase } = require('./lib/supabase');
 const { createClient } = require('@supabase/supabase-js');
+const userAuth=require('./lib/user-auth');
 const serviceKey=String(process.env.SUPABASE_SECRET_KEY||process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
 const adminClient=(process.env.SUPABASE_URL&&serviceKey)?createClient(process.env.SUPABASE_URL,serviceKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
 const userSessions=new Map();
@@ -49,6 +50,8 @@ async function sectionsFor(userId){const {data,error}=await supabase.from('user_
 async function sectionFor(userId,section,fallback={}){const {data,error}=await supabase.from('user_data').select('data').eq('user_id',userId).eq('section',section).maybeSingle();if(error)throw error;return data?.data??fallback;}
 async function saveSection(userId,section,value){const {data,error}=await supabase.from('user_data').upsert({user_id:userId,section,data:value},{onConflict:'user_id,section'}).select('data').single();if(error)throw error;return data.data;}
 async function resolveSession(req){
+ const authCookie=userAuth.verifyToken(cookies(req).linkbio_user);
+ if(authCookie?.sub)return authCookie.sub;
  const auth=String(req.headers.authorization||'');
  const bearer=/^Bearer\s+(.+)$/i.exec(auth)?.[1];
  if(bearer&&supabase){try{const {data,error}=await supabase.auth.getUser(bearer);if(!error&&data?.user?.id)return data.user.id;}catch{}}
@@ -129,13 +132,59 @@ async function handleSupabase(req,res,next){
     return next();
   }catch(e){console.error('Supabase middleware:',e);return res.status(500).json({success:false,message:e.message||'Supabase error'});}
 }
+async function userRole(userId){
+ if(!adminClient||!userId)return 'user';
+ const {data}=await adminClient.from('admin_roles').select('role').eq('user_id',userId).maybeSingle();
+ return data?.role||'user';
+}
+async function bootstrapUser(userId,email,username,name){
+ const existing=await sectionFor(userId,'profile',null);if(existing)return existing;
+ const base=clone(defaults);base.profile.username=userAuth.normalizeUsername(username||'');
+ base.profile.name=String(name||email?.split('@')[0]||'User').slice(0,80);base.profile.displayName=base.profile.name;base.profile.email=String(email||'').toLowerCase();
+ for(const [section,value] of Object.entries(base))await saveSection(userId,section,value);
+ await saveSection(userId,'analytics',clone(defaults.analytics));await saveSection(userId,'settings',clone(defaults.settings));return base.profile;
+}
+app.use(async(req,res,next)=>{
+ if(!supabaseEnabled||!adminClient)return next();
+ try{
+  if(req.path==='/api/register'&&req.method==='POST'){
+   const email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||''),username=userAuth.normalizeUsername(req.body?.username),name=String(req.body?.name||username).trim();
+   if(!userAuth.validUsername(username))return res.status(400).json({success:false,message:'Username ต้องเป็น a-z, 0-9, . _ - และยาว 2-40 ตัว หรือเป็นชื่อสงวน'});
+   if(!/^\S+@\S+\.\S+$/.test(email)||password.length<8)return res.status(400).json({success:false,message:'Email หรือ Password ไม่ถูกต้อง'});
+   if(await findUserByUsername(username))return res.status(409).json({success:false,message:'Username นี้ถูกใช้งานแล้ว'});
+   const made=await userAuth.createUser(adminClient,{email,password,username,name});const profile=await bootstrapUser(made.user.id,made.user.email,made.username,made.name);
+   const initialSettings=await sectionFor(made.user.id,'settings',{});initialSettings.passwordHash=made.passwordHash;await saveSection(made.user.id,'settings',initialSettings);
+   const ownerEmail=String(process.env.SUPABASE_OWNER_EMAIL||'owner@linkbio.local').trim().toLowerCase();
+   if(made.user.email?.toLowerCase()===ownerEmail)await adminClient.from('admin_roles').upsert({user_id:made.user.id,role:'super_admin'},{onConflict:'user_id'});
+   const role=await userRole(made.user.id);userAuth.setCookie(res,userAuth.cookieToken(made.user.id,role,43200));
+   return res.status(201).json({success:true,user:{id:made.user.id,email:made.user.email,username:profile.username,role}});
+  }
+  if(req.path==='/api/login'&&req.method==='POST'){
+   const email=String(req.body?.email||'').trim().toLowerCase(),password=String(req.body?.password||'');
+   const list=await adminClient.auth.admin.listUsers({page:1,perPage:1000});if(list.error)throw list.error;
+   const u=(list.data.users||[]).find(x=>x.email?.toLowerCase()===email);if(!u)return res.status(401).json({success:false,message:'อีเมลหรือรหัสผ่านไม่ถูกต้อง'});
+   const settings=await sectionFor(u.id,'settings',{});if(!settings.passwordHash||!(await userAuth.verifyPassword(password,settings.passwordHash)))return res.status(401).json({success:false,message:'อีเมลหรือรหัสผ่านไม่ถูกต้อง'});
+   const profile=await sectionFor(u.id,'profile',{}),role=await userRole(u.id);userAuth.setCookie(res,userAuth.cookieToken(u.id,role,43200));
+   return res.json({success:true,user:{id:u.id,email,username:profile.username||'',role}});
+  }
+  if(req.path==='/api/auth/bootstrap'&&req.method==='POST'){
+   const id=await resolveSession(req);if(!id)return res.status(401).json({success:false,message:'กรุณาเข้าสู่ระบบ'});
+   const token=String(req.headers.authorization||'').replace(/^Bearer\s+/i,'');let email='';
+   if(token&&supabase){const g=await supabase.auth.getUser(token);email=g.data?.user?.email||'';}
+   const profile=await bootstrapUser(id,email,req.body?.username,req.body?.name);return res.json({success:true,profile,role:await userRole(id)});
+  }
+  if(req.path==='/api/auth/me'&&req.method==='GET'){const id=await resolveSession(req);if(!id)return res.json({success:true,loggedIn:false});const profile=await sectionFor(id,'profile',{});return res.json({success:true,loggedIn:true,user:{id,username:profile.username||'',email:profile.email||'',role:await userRole(id)}})}
+  if(req.path==='/api/auth/logout'&&req.method==='POST'){userAuth.clearCookie(res);return res.json({success:true});}
+  return next();
+ }catch(e){console.error('User auth:',e);return res.status(500).json({success:false,message:e.message||'Authentication error'});}
+});
 app.use(handleSupabase);
 
 const sessions=new Map();const ADMIN_PASSWORD=process.env.ADMIN_PASSWORD||'adminsuguszx11';
 function cookies(req){return Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>x.trim().split('=').map(decodeURIComponent)).filter(x=>x.length===2))}
 function admin(req){const t=cookies(req).linkbio_admin,s=sessions.get(t);if(!s)return false;if(Date.now()>s.exp){sessions.delete(t);return false}return true}
 function guard(req,res,next){if(!admin(req))return res.status(401).json({success:false,message:'กรุณาเข้าสู่ระบบ Admin'});next()}
-app.get('/',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/u/:username',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/admin.html',(_q,r)=>r.sendFile(path.join(ROOT,'frontend','admin','index.html')));app.get('/terms.html',(_q,r)=>r.sendFile(path.join(ROOT,'terms.html')));app.get('/privacy.html',(_q,r)=>r.sendFile(path.join(ROOT,'privacy.html')));app.get('/register.html',(_q,r)=>r.sendFile(path.join(ROOT,'register.html')));app.get('/user-auth.html',(_q,r)=>r.sendFile(path.join(ROOT,'user-auth.html')));app.get('/dashboard.html',(_q,r)=>r.sendFile(path.join(ROOT,'dashboard.html')));app.get('/login',(_q,r)=>r.sendFile(path.join(ROOT,'user-auth.html')));app.get('/:username',(q,r)=>{const u=String(q.params.username||'').toLowerCase();if(!/^[a-z0-9_-]{2,40}$/.test(u)||['admin','api','login','register','dashboard','settings','support','profile','privacy','terms','favicon','assets','static'].includes(u))return r.status(404).json({success:false,message:'ไม่พบหน้า'});r.sendFile(path.join(ROOT,'index.html'))});
+app.get('/',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/u/:username',(_q,r)=>r.sendFile(path.join(ROOT,'index.html')));app.get('/admin.html',(q,r)=>{if(!admin(q))return r.redirect('/dashboard.html?error=admin');r.sendFile(path.join(ROOT,'frontend','admin','index.html'))});app.get('/terms.html',(_q,r)=>r.sendFile(path.join(ROOT,'terms.html')));app.get('/privacy.html',(_q,r)=>r.sendFile(path.join(ROOT,'privacy.html')));app.get('/register.html',(_q,r)=>r.sendFile(path.join(ROOT,'register.html')));app.get('/register',(_q,r)=>r.sendFile(path.join(ROOT,'register.html')));app.get('/user-auth.html',(_q,r)=>r.sendFile(path.join(ROOT,'user-auth.html')));app.get('/dashboard.html',(_q,r)=>r.sendFile(path.join(ROOT,'dashboard.html')));app.get('/login',(_q,r)=>r.sendFile(path.join(ROOT,'login.html')));app.get('/:username',(q,r)=>{const u=String(q.params.username||'').toLowerCase();if(!/^[a-z0-9_-]{2,40}$/.test(u)||['admin','api','login','register','dashboard','settings','support','profile','privacy','terms','favicon','assets','static'].includes(u))return r.status(404).json({success:false,message:'ไม่พบหน้า'});r.sendFile(path.join(ROOT,'index.html'))});
 app.post('/api/admin/login',(req,res)=>{const p=String(req.body?.password||'');const a=Buffer.from(p),b=Buffer.from(ADMIN_PASSWORD);if(a.length!==b.length||!crypto.timingSafeEqual(a,b))return res.status(401).json({success:false,message:'รหัสผ่านไม่ถูกต้อง'});const token=crypto.randomBytes(48).toString('hex');sessions.set(token,{exp:Date.now()+12*3600000});res.setHeader('Set-Cookie',`linkbio_admin=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=43200`);res.json({success:true})});
 app.get('/api/admin/me',(q,r)=>r.json({success:true,loggedIn:admin(q)}));app.post('/api/admin/logout',(q,r)=>{const t=cookies(q).linkbio_admin;if(t)sessions.delete(t);r.setHeader('Set-Cookie','linkbio_admin=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');r.json({success:true})});
 app.get('/api/profile',(req,res)=>{const s=publicSnapshot();res.set('Cache-Control','no-store');res.json({success:true,profile:{...s.profile,links:s.links,music:s.music,appearance:s.appearance,visualizer:s.visualizer,branding:s.branding,profileCard:s.profileCard,backgroundSettings:s.backgroundSettings,gifStickers:read('gifStickers')}})});

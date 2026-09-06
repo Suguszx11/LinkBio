@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เข้าสู่ระบบ • LinkBio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/auth.css">
+</head>
+<body data-mode="login"><main class="auth-shell">
+<div class="brand"><div class="brand-mark">↗</div><div><div class="eyebrow">CREATOR PLATFORM</div><b>LinkBio</b></div></div>
+<h1 class="title">ยินดีต้อนรับกลับ 👋</h1><p class="subtitle">เข้าสู่ระบบเพื่อจัดการโปรไฟล์ ลิงก์ เพลง และการออกแบบของคุณ</p>
+<form id="form" class="form"><label class="field">Email<input class="input" id="email" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+<label class="field">รหัสผ่าน<input class="input" id="password" type="password" autocomplete="current-password" minlength="8" placeholder="••••••••" required></label>
+<button class="btn" id="submit" type="submit">เข้าสู่ระบบ</button></form>
+<div class="divider">หรือ</div><button class="btn google" id="google" type="button">เข้าสู่ระบบด้วย Google</button>
+<div id="msg" class="msg"></div><div class="links"><span>ยังไม่มีบัญชี?</span><a href="/register">สมัครสมาชิก →</a></div>
+<a class="links admin-link" href="/admin.html">สำหรับผู้ดูแลระบบ → เข้าสู่ Admin</a>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/auth-ui.js?v=20260906-1"></script></body></html>
