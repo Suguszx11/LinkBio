@@ -59,3 +59,69 @@ where section='profile';
 
 -- Keep the view read-only and expose only the public profile section.
 grant select on public.public_profiles to anon, authenticated;
+
+
+-- V2: canonical usernames for public URLs.
+create table if not exists public.profiles (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  username text not null,
+  display_name text not null default '',
+  avatar text not null default '',
+  bio text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create unique index if not exists profiles_username_unique
+  on public.profiles (lower(username));
+
+alter table public.profiles enable row level security;
+create policy "public can read profile handles"
+  on public.profiles for select using (true);
+create policy "users can insert own profile"
+  on public.profiles for insert with check (auth.uid() = user_id);
+create policy "users can update own profile"
+  on public.profiles for update using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create or replace function public.sync_profile_handle()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.section = 'profile' then
+    insert into public.profiles(user_id,username,display_name,avatar,bio)
+    values (
+      new.user_id,
+      lower(trim(new.data->>'username')),
+      coalesce(new.data->>'displayName',new.data->>'name',''),
+      coalesce(new.data->>'avatar',''),
+      coalesce(new.data->>'bio','')
+    )
+    on conflict (user_id) do update set
+      username=excluded.username,
+      display_name=excluded.display_name,
+      avatar=excluded.avatar,
+      bio=excluded.bio,
+      updated_at=now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists user_data_profile_sync on public.user_data;
+create trigger user_data_profile_sync
+  after insert or update on public.user_data
+  for each row execute function public.sync_profile_handle();
+
+create or replace view public.public_profiles as
+select p.user_id,
+       jsonb_build_object(
+         'username',p.username,
+         'displayName',p.display_name,
+         'avatar',p.avatar,
+         'bio',p.bio
+       ) as data,
+       p.updated_at
+from public.profiles p;
+
+grant select on public.profiles to anon, authenticated;
+grant select on public.public_profiles to anon, authenticated;
