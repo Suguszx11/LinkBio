@@ -6,7 +6,7 @@ const KEY = 'state.json';
 const DAY = () => new Date().toISOString().slice(0, 10);
 
 const defaults = {
-  profile: { name:'LinkBio', username:'username', displayName:'Your Name', bio:'สร�0า�!ห�"�0า� �:ร� �xล�R� อ�!� ุ� ', status:'Online', customStatus:'', statusEmoji:'� �', font:'Prompt', fontSize:16, fontWeight:600, letterSpacing:0, textColor:'#ffffff', accent:'#a855f7', secondary:'#8b5cf6', background:'#08080d', verified:true, verifiedPosition:'inline', verifiedAnimation:'check', verifiedTooltip:'Verified Profile' },
+  profile: { name:'LinkBio', username:'username', displayName:'Your Name', bio:'\\u0e2a\\u0e23\\u0e49\\u0e32\\u0e07 LinkBio \\u0e02\\u0e2d\\u0e07\\u0e04\\u0e38\\u0e13', status:'Online', customStatus:'', statusEmoji:'\\u{1F7E2}', font:'Prompt', fontSize:16, fontWeight:600, letterSpacing:0, textColor:'#ffffff', accent:'#a855f7', secondary:'#8b5cf6', background:'#08080d', verified:true, verifiedPosition:'inline', verifiedAnimation:'check', verifiedTooltip:'Verified Profile' },
   links: [], music: [], appearance: { backgroundType:'color', backgroundColor:'#08080d', gradientColors:['#4b1c77','#08080d'], gradientAngle:135, backgroundOpacity:1, effectIntensity:.7, particleCount:40, particleSpeed:1, performanceMode:false, videoLoop:true, videoMute:true, effects:{} },
   visualizer: { enabled:true, mode:'bars', sensitivity:1, smoothing:.78, barCount:34, barWidth:4, barGap:3, height:42, glow:.9, speed:1, opacity:.9, color:'#a855f7', rotation:0, mirror:false, responsive:true },
   branding: { enabled:false, text:'', icon:'', size:10, color:'#fff', neonColor:'#a855f7', glowIntensity:1, radius:999, opacity:.8, position:'bottom', animation:'none', animationSpeed:1, border:false },
@@ -48,7 +48,7 @@ exports.handler = async event => {
     if(path==='/admin/logout' && method==='POST') return json(200,{success:true},{'set-cookie':'linkbio_admin=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0'});
 
     if(path==='/profile' && method==='GET') return json(200,{success:true,profile:{...s.profile,links:s.links,music:s.music,appearance:s.appearance,visualizer:s.visualizer,branding:s.branding,profileCard:s.profileCard,backgroundSettings:s.background}});
-    if(path==='/profile' && method==='PUT'){const g=guarded(event);if(g)return g;s.profile={...s.profile,...body,username:clean(body.username,40),verifiedIcon:'�S ',verifiedText:'',verifiedPosition:'inline',verifiedRadius:0,verifiedOpacity:1,verifiedTooltip:'Verified Profile'};s.analytics.activity=[{type:'profile-update',at:new Date().toISOString()},...(s.analytics.activity||[])].slice(0,100);await save(s);return json(200,{success:true,message:'Request failed',profile:s.profile})}
+    if(path==='/profile' && method==='PUT'){const g=guarded(event);if(g)return g;s.profile={...s.profile,...body,username:clean(body.username,40),verifiedIcon:'\\u2713',verifiedText:'',verifiedPosition:'inline',verifiedRadius:0,verifiedOpacity:1,verifiedTooltip:'Verified Profile'};s.analytics.activity=[{type:'profile-update',at:new Date().toISOString()},...(s.analytics.activity||[])].slice(0,100);await save(s);return json(200,{success:true,message:'Request failed',profile:s.profile})}
 
     if(path==='/profile-card' && method==='GET') return json(200,{success:true,profileCard:s.profileCard});
     if(path==='/profile-card' && method==='PUT'){const g=guarded(event);if(g)return g;s.profileCard={...s.profileCard,...body};await save(s);return json(200,{success:true,message:'Request failed',profileCard:s.profileCard})}
