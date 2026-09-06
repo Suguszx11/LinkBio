@@ -3,7 +3,8 @@ const path=require('path');const fs=require('fs');const crypto=require('crypto')
 const app=express();const PORT=Number(process.env.PORT)||3000;const ROOT=__dirname;
 const DB=path.join(ROOT,'database');const UP=path.join(ROOT,'uploads');
 const files={profile:path.join(DB,'profile.json'),links:path.join(DB,'links.json'),music:path.join(DB,'music.json'),profileCard:path.join(DB,'profileCard.json'),background:path.join(DB,'background.json'),appearance:path.join(DB,'appearance.json'),visualizer:path.join(DB,'visualizer.json'),branding:path.join(DB,'branding.json'),analytics:path.join(DB,'analytics.json'),settings:path.join(DB,'settings.json'),gifStickers:path.join(DB,'gifStickers.json')};
-const canWrite=process.env.VERCEL!=='1';
+const isVercel=process.env.VERCEL==='1';
+const canWrite=!isVercel;
 if(canWrite)for(const d of [DB,UP,path.join(UP,'avatars'),path.join(UP,'covers'),path.join(UP,'music')])fs.mkdirSync(d,{recursive:true});
 const defaults={
 profile:{name:'Your Name',username:'username',displayName:'Your Name',bio:'สร้าง Link Bio ของคุณ',bioLines:'',align:'center',font:'Prompt',fontSize:16,fontWeight:600,letterSpacing:0,lineHeight:1.5,status:'Online',statusEmoji:'●',verified:false,verifiedColor:'#60a5fa',avatar:'',avatarCrop:50,avatarZoom:1,avatarPosition:'center',avatarBorder:true,avatarBorderWidth:3,avatarGlow:true,avatarShadow:true,avatarShape:'circle',cover:'',coverPosition:'center',coverOpacity:1,coverBlur:0,coverOverlay:'',cardWidth:480,cardRadius:30,cardShadow:true,cardBlur:24,cardTransparency:.72,spacing:10,animation:'smooth',entrance:'fade',hover:'lift',visibility:true,customCss:'',seoTitle:'LinkBio',seoDescription:'My LinkBio',ogImage:'',favicon:'',accent:'#a855f7',textColor:'#fff',secondary:'#aaa',background:'#08080d',language:'th',timezone:'Asia/Bangkok'},
@@ -21,7 +22,7 @@ let publicCache=null;
 const publicClients=new Set();
 function publicSnapshot(){if(publicCache)return publicCache;publicCache={profile:read('profile'),links:read('links'),music:read('music'),appearance:read('appearance'),visualizer:read('visualizer'),branding:read('branding'),profileCard:read('profileCard'),backgroundSettings:read('background')};return publicCache;}
 function publicChanged(k){publicCache=null;if(!['profile','links','music','appearance','visualizer','branding','profileCard','background','gifStickers'].includes(k))return;const payload=JSON.stringify({type:'profile-updated',key:k});for(const client of publicClients){try{client.write(`event: update\\ndata: ${payload}\\n\\n`)}catch{publicClients.delete(client)}}}
-function write(k,x){const json=JSON.stringify(x,null,2);JSON.parse(json);const bak=files[k]+'.bak',tmp=files[k]+'.tmp';try{if(fs.existsSync(files[k]))fs.copyFileSync(files[k],bak);}catch{}fs.writeFileSync(tmp,json);fs.renameSync(tmp,files[k]);publicChanged(k);}
+function write(k,x){const json=JSON.stringify(x,null,2);JSON.parse(json);if(!canWrite){const e=new Error('Persistent JSON storage is disabled on Vercel. Use Supabase user_data for writes.');e.code='PERSISTENCE_BACKEND_REQUIRED';throw e;}const bak=files[k]+'.bak',tmp=files[k]+'.tmp';try{if(fs.existsSync(files[k]))fs.copyFileSync(files[k],bak);}catch{}fs.writeFileSync(tmp,json);fs.renameSync(tmp,files[k]);publicChanged(k);}
 function patch(k,obj){const x=read(k);const n={...x,...obj};write(k,n);return n;}
 function clean(v,n=500){return String(v??'').trim().slice(0,n)}
 function urlOK(v){try{const u=new URL(v);return ['http:','https:'].includes(u.protocol)}catch{return false}}
@@ -239,3 +240,4 @@ registerSupport(app,{isAdmin:admin,resolveSupabaseUser:async token=>{if(!supabas
 app.use((err,q,r,n)=>{console.error(err);if(err instanceof multer.MulterError)return r.status(400).json({success:false,message:'อัปโหลดไม่สำเร็จ: '+err.message});r.status(500).json({success:false,message:'เกิดข้อผิดพลาดในเซิร์ฟเวอร์'})});app.use((q,r)=>r.status(404).json({success:false,message:'ไม่พบ endpoint'}));
 if(require.main===module){app.listen(PORT,()=>console.log(`LinkBio running: http://localhost:${PORT}`));}
 module.exports=app;
+
