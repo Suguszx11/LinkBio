@@ -71,3 +71,10 @@ html[data-pc-hover="glow"] .profile-card:hover,html[data-pc-hover="border-glow"]
 
 /* Indeterminate loading state */
 .profile-loading{display:flex;align-items:center;justify-content:center;gap:10px}.loading-orb{width:28px;height:28px;border-radius:50%;border:3px solid rgba(255,255,255,.16);border-top-color:currentColor;animation:profile-spin .8s linear infinite}.profile-loading span:last-child{font-size:12px;opacity:.7}@keyframes profile-spin{to{transform:rotate(360deg)}}
+
+/* LinkBio CTA: framed card treatment */
+.create-linkbio-btn{position:relative;isolation:isolate;border:1px solid rgba(168,85,247,.42);border-radius:18px;background:linear-gradient(180deg,rgba(18,18,28,.94),rgba(10,10,17,.94));padding:15px 17px;box-shadow:0 0 0 1px rgba(255,255,255,.035) inset,0 12px 34px rgba(0,0,0,.28),0 0 24px rgba(139,92,246,.08);overflow:hidden}
+.create-linkbio-btn:before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,rgba(168,85,247,.14),transparent 42%,rgba(59,130,246,.08));pointer-events:none}
+.create-linkbio-btn:after{content:"";position:absolute;left:16px;right:16px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);opacity:.7}
+.create-linkbio-btn:hover{transform:translateY(-2px);border-color:rgba(192,132,252,.72);box-shadow:0 0 0 1px rgba(168,85,247,.08) inset,0 16px 38px rgba(0,0,0,.34),0 0 30px rgba(139,92,246,.16)}
+.create-linkbio-icon{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.055);box-shadow:0 0 16px rgba(139,92,246,.12)}
