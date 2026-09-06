@@ -14,6 +14,10 @@ function registerSupport(app,{isAdmin,resolveSupabaseUser}){
     if(!fs.existsSync(messagesFile))fs.writeFileSync(messagesFile,'[]');
   }
   const supportSessions=new Map(),userClients=new Map(),adminClients=new Set();
+  const supabase=resolveSupabaseUser?.client||null;
+  const useSupabase=!!(process.env.SUPABASE_URL&&process.env.SUPABASE_SERVICE_ROLE_KEY);
+  let dbClient=null;
+  try{if(useSupabase){const {createClient}=require('@supabase/supabase-js');dbClient=createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}})}}catch{}
   let adminPresenceUntil=0;
   const clean=(v,n)=>String(v??'').trim().slice(0,n);
   const read=p=>{try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch{return []}};
@@ -27,6 +31,12 @@ function registerSupport(app,{isAdmin,resolveSupabaseUser}){
   const ticketFor=id=>read(ticketsFile).find(x=>x.id===id);
   const messagesFor=id=>read(messagesFile).filter(x=>x.ticketId===id).sort((a,b)=>Number(a.number)-Number(b.number));
   const publicTicket=t=>({...t,messageCount:messagesFor(t.id).length});
+  const listUserTickets=async uid=>{if(!dbClient)return read(ticketsFile).filter(x=>x.userId===uid);const {data}=await dbClient.from('support_tickets').select('*').eq('user_id',uid).order('updated_at',{ascending:false});return (data||[]).map(x=>({id:x.id,userId:x.user_id,email:x.email,displayName:x.display_name,photoUrl:x.photo_url,subject:x.subject,status:x.status,userUnread:x.user_unread,adminUnread:x.admin_unread,createdAt:x.created_at,updatedAt:x.updated_at}));
+  };
+  const dbTicket=async id=>{if(!dbClient)return null;const {data}=await dbClient.from('support_tickets').select('*').eq('id',id).maybeSingle();return data?{id:data.id,userId:data.user_id,email:data.email,displayName:data.display_name,photoUrl:data.photo_url,subject:data.subject,status:data.status,userUnread:data.user_unread,adminUnread:data.admin_unread,createdAt:data.created_at,updatedAt:data.updated_at}:null};
+  const dbMessages=async id=>{if(!dbClient)return [];const {data}=await dbClient.from('support_messages').select('*').eq('ticket_id',id).order('number',{ascending:true});return (data||[]).map(m=>({id:m.id,number:m.number,ticketId:m.ticket_id,sender:m.sender,senderId:m.sender_id,text:m.text,createdAt:m.created_at,readAt:m.read_at}))};
+  const saveDbTicket=async t=>dbClient&&dbClient.from('support_tickets').upsert({id:t.id,user_id:t.userId,email:t.email||'',display_name:t.displayName||'',photo_url:t.photoUrl||'',subject:t.subject,status:t.status,user_unread:t.userUnread||0,admin_unread:t.adminUnread||0,created_at:t.createdAt,updated_at:t.updatedAt},{onConflict:'id'});
+  const saveDbMessage=async m=>dbClient&&dbClient.from('support_messages').insert({id:m.id,ticket_id:m.ticketId,number:m.number,sender:m.sender,sender_id:m.senderId||'',text:m.text,created_at:m.createdAt,read_at:m.readAt});
   const emit=(uid,event,payload)=>{const data=`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;for(const res of userClients.get(uid)||[])try{res.write(data)}catch{}};
   const emitAdmin=(event,payload)=>{const data=`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`;for(const res of adminClients)try{res.write(data)}catch{}};
   async function verifySupabaseToken(token){
@@ -62,7 +72,7 @@ function registerSupport(app,{isAdmin,resolveSupabaseUser}){
   app.post('/api/support/logout',(req,res)=>{const t=cookie(req,'linkbio_support');if(t)supportSessions.delete(t);setCookie(res,'linkbio_support','',0);res.json({success:true})});
   app.get('/api/support/presence',(req,res)=>res.json({success:true,online:Date.now()<adminPresenceUntil}));
 
-  app.get('/api/support/tickets',(req,res)=>{const s=requireUser(req,res);if(!s)return;const items=read(ticketsFile).filter(x=>x.userId===s.uid).sort((a,b)=>new Date(b.updatedAt)-new Date(a.updatedAt));res.json({success:true,tickets:items.map(publicTicket),unread:items.reduce((n,t)=>n+Number(t.userUnread||0),0),adminOnline:Date.now()<adminPresenceUntil})});
+  app.get('/api/support/tickets',async(req,res)=>{const s=requireUser(req,res);if(!s)return;const items=await listUserTickets(s.uid);const out=[];for(const t of items){const messages=dbClient?await dbMessages(t.id):messagesFor(t.id);out.push({...t,messageCount:messages.length})}res.json({success:true,tickets:out,unread:items.reduce((n,t)=>n+Number(t.userUnread||0),0),adminOnline:Date.now()<adminPresenceUntil})});
   app.post('/api/support/tickets',async(req,res)=>{const s=requireUser(req,res);if(!s)return;const subject=clean(req.body?.subject,120)||'ติดต่อแอดมิน';const first=clean(req.body?.message,2000);if(!first)return res.status(400).json({success:false,message:'กรุณาพิมพ์ข้อความก่อน'});const now=new Date().toISOString();const t={id:'ticket_'+crypto.randomBytes(6).toString('hex'),userId:s.uid,email:s.email,displayName:s.displayName,photoUrl:s.photoUrl,subject,status:'open',userUnread:0,adminUnread:1,createdAt:now,updatedAt:now};const ts=read(ticketsFile);ts.push(t);write(ticketsFile,ts);const m={id:'message_'+crypto.randomBytes(7).toString('hex'),number:1,ticketId:t.id,sender:'user',senderId:s.uid,text:first,createdAt:now,readAt:null};const ms=read(messagesFile);ms.push(m);write(messagesFile,ms);emitAdmin('support:ticket-created',{ticket:publicTicket(t),message:m});
     if(Date.now()>=adminPresenceUntil){const ai=await aiReply(first);if(ai){const at=new Date().toISOString();const am={id:'message_'+crypto.randomBytes(7).toString('hex'),number:2,ticketId:t.id,sender:'ai',senderId:'ai',text:ai,createdAt:at,readAt:null};const all=read(messagesFile);all.push(am);write(messagesFile,all);t.userUnread=1;t.adminUnread=0;t.status='pending';t.updatedAt=at;const tx=read(ticketsFile),ti=tx.findIndex(x=>x.id===t.id);tx[ti]=t;write(ticketsFile,tx);emit(s.uid,'support:message-created',{ticket:publicTicket(t),message:am});}}
     res.status(201).json({success:true,ticket:publicTicket(t),messages:messagesFor(t.id)});

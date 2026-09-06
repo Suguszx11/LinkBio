@@ -125,3 +125,40 @@ from public.profiles p;
 
 grant select on public.profiles to anon, authenticated;
 grant select on public.public_profiles to anon, authenticated;
+
+-- V3: persistent support tickets/messages (Vercel-safe)
+create table if not exists public.support_tickets (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  email text not null default '',
+  display_name text not null default '',
+  photo_url text not null default '',
+  subject text not null default 'ติดต่อแอดมิน',
+  status text not null default 'open' check (status in ('open','pending','closed')),
+  user_unread integer not null default 0,
+  admin_unread integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists support_tickets_user_idx on public.support_tickets(user_id,updated_at desc);
+create table if not exists public.support_messages (
+  id text primary key,
+  ticket_id text not null references public.support_tickets(id) on delete cascade,
+  number integer not null,
+  sender text not null check (sender in ('user','admin','ai')),
+  sender_id text not null default '',
+  text text not null,
+  created_at timestamptz not null default now(),
+  read_at timestamptz
+);
+create index if not exists support_messages_ticket_idx on public.support_messages(ticket_id,number);
+alter table public.support_tickets enable row level security;
+alter table public.support_messages enable row level security;
+create policy "users read own support tickets" on public.support_tickets for select using (auth.uid()=user_id);
+create policy "users create own support tickets" on public.support_tickets for insert with check (auth.uid()=user_id);
+create policy "users update own support tickets" on public.support_tickets for update using (auth.uid()=user_id) with check (auth.uid()=user_id);
+create policy "users read messages in own tickets" on public.support_messages for select using (exists(select 1 from public.support_tickets t where t.id=ticket_id and t.user_id=auth.uid()));
+create policy "users create messages in own tickets" on public.support_messages for insert with check (exists(select 1 from public.support_tickets t where t.id=ticket_id and t.user_id=auth.uid()));
+create or replace function public.touch_support_ticket() returns trigger language plpgsql as $$ begin new.updated_at=now(); return new; end; $$;
+drop trigger if exists support_ticket_touch on public.support_tickets;
+create trigger support_ticket_touch before update on public.support_tickets for each row execute function public.touch_support_ticket();
