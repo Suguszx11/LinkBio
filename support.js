@@ -6,14 +6,21 @@ function registerSupport(app,{isAdmin}){
   const dir=path.join(__dirname,'database');
   const ticketsFile=path.join(dir,'support-tickets.json');
   const messagesFile=path.join(dir,'support-messages.json');
-  fs.mkdirSync(dir,{recursive:true});
-  if(!fs.existsSync(ticketsFile))fs.writeFileSync(ticketsFile,'[]');
-  if(!fs.existsSync(messagesFile))fs.writeFileSync(messagesFile,'[]');
+  // Vercel's deployed filesystem is read-only. Legacy JSON storage remains local-only.
+  const canWrite=process.env.VERCEL!=='1';
+  if(canWrite){
+    fs.mkdirSync(dir,{recursive:true});
+    if(!fs.existsSync(ticketsFile))fs.writeFileSync(ticketsFile,'[]');
+    if(!fs.existsSync(messagesFile))fs.writeFileSync(messagesFile,'[]');
+  }
   const supportSessions=new Map(),userClients=new Map(),adminClients=new Set();
   let adminPresenceUntil=0;
   const clean=(v,n)=>String(v??'').trim().slice(0,n);
   const read=p=>{try{return JSON.parse(fs.readFileSync(p,'utf8'))}catch{return []}};
-  const write=(p,v)=>{const tmp=p+'.tmp';fs.writeFileSync(tmp,JSON.stringify(v,null,2));fs.renameSync(tmp,p)};
+  const write=(p,v)=>{
+    if(!canWrite)throw Object.assign(new Error('Support JSON storage is unavailable on Vercel'),{code:'EROFS'});
+    const tmp=p+'.tmp';fs.writeFileSync(tmp,JSON.stringify(v,null,2));fs.renameSync(tmp,p)
+  };
   const cookie=(req,n)=>Object.fromEntries(String(req.headers.cookie||'').split(';').map(x=>x.trim().split('=').map(decodeURIComponent)).filter(x=>x.length===2))[n];
   const setCookie=(res,n,v,max=2592000)=>res.setHeader('Set-Cookie',`${n}=${encodeURIComponent(v)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${max}`);
   const userFromSession=req=>{const t=cookie(req,'linkbio_support'),s=t&&supportSessions.get(t);if(!s||s.exp<Date.now()){if(s)supportSessions.delete(t);return null}return s};

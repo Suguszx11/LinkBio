@@ -3,7 +3,8 @@ const path=require('path');const fs=require('fs');const crypto=require('crypto')
 const app=express();const PORT=Number(process.env.PORT)||3000;const ROOT=__dirname;
 const DB=path.join(ROOT,'database');const UP=path.join(ROOT,'uploads');
 const files={profile:path.join(DB,'profile.json'),links:path.join(DB,'links.json'),music:path.join(DB,'music.json'),profileCard:path.join(DB,'profileCard.json'),background:path.join(DB,'background.json'),appearance:path.join(DB,'appearance.json'),visualizer:path.join(DB,'visualizer.json'),branding:path.join(DB,'branding.json'),analytics:path.join(DB,'analytics.json'),settings:path.join(DB,'settings.json'),gifStickers:path.join(DB,'gifStickers.json')};
-for(const d of [DB,UP,path.join(UP,'avatars'),path.join(UP,'covers'),path.join(UP,'music')])fs.mkdirSync(d,{recursive:true});
+const canWrite=process.env.VERCEL!=='1';
+if(canWrite)for(const d of [DB,UP,path.join(UP,'avatars'),path.join(UP,'covers'),path.join(UP,'music')])fs.mkdirSync(d,{recursive:true});
 const defaults={
 profile:{name:'Your Name',username:'username',displayName:'Your Name',bio:'สร้าง Link Bio ของคุณ',bioLines:'',align:'center',font:'Prompt',fontSize:16,fontWeight:600,letterSpacing:0,lineHeight:1.5,status:'Online',statusEmoji:'●',verified:false,verifiedColor:'#60a5fa',avatar:'',avatarCrop:50,avatarZoom:1,avatarPosition:'center',avatarBorder:true,avatarBorderWidth:3,avatarGlow:true,avatarShadow:true,avatarShape:'circle',cover:'',coverPosition:'center',coverOpacity:1,coverBlur:0,coverOverlay:'',cardWidth:480,cardRadius:30,cardShadow:true,cardBlur:24,cardTransparency:.72,spacing:10,animation:'smooth',entrance:'fade',hover:'lift',visibility:true,customCss:'',seoTitle:'LinkBio',seoDescription:'My LinkBio',ogImage:'',favicon:'',accent:'#a855f7',textColor:'#fff',secondary:'#aaa',background:'#08080d',language:'th',timezone:'Asia/Bangkok'},
 appearance:{backgroundType:'solid',backgroundColor:'#08080d',gradientColors:['#4b1c77','#08080d'],gradientAngle:135,backgroundImage:'',backgroundGif:'',backgroundVideo:'',backgroundOpacity:1,backgroundBlur:0,videoOpacity:1,videoLoop:true,videoMute:true,overlay:'',overlayOpacity:.2,effects:{particles:true,rain:false,snow:false,meteor:false,stars:false,neonGlow:true,grid:false,aurora:false,fog:false,floatingParticles:true,borderGlow:true,glassBlur:true},effectIntensity:.7,particleCount:40,particleSpeed:1,particleSize:2,performanceMode:false},
@@ -13,8 +14,8 @@ profileCard:{enabled:true,mode:'transparent',backgroundColor:'#8b5cf6',opacity:.
 background:{enabled:true,preset:'floating-particles',intensity:.7,speed:1,opacity:.9,quality:'auto',performanceMode:false,interaction:true,settings:{}},
 settings:{publicEnabled:true,adminSessionHours:12,performanceMode:false},gifStickers:{enabled:false,items:[]},links:[],music:[],analytics:{profileViews:0,viewsByDay:{},clicksByLink:{},clicksByDay:{},activity:[],lastUpdate:null}
 };
-function clone(x){return JSON.parse(JSON.stringify(x));}function ensure(k){if(!fs.existsSync(files[k]))fs.writeFileSync(files[k],JSON.stringify(defaults[k],null,2));}
-for(const k of Object.keys(files))ensure(k);
+function clone(x){return JSON.parse(JSON.stringify(x));}function ensure(k){if(canWrite&&!fs.existsSync(files[k]))fs.writeFileSync(files[k],JSON.stringify(defaults[k],null,2));}
+if(canWrite)for(const k of Object.keys(files))ensure(k);
 function read(k){try{return JSON.parse(fs.readFileSync(files[k],'utf8'));}catch(e){const bak=files[k]+'.bak';try{return JSON.parse(fs.readFileSync(bak,'utf8'));}catch{return clone(defaults[k]);}}}
 let publicCache=null;
 const publicClients=new Set();
