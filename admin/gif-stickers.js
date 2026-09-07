@@ -1,0 +1,71 @@
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+let configKey='',state={enabled:true,items:[]},results=[],active=0;
+const api=async(url,opt={})=>{const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...opt,headers:{'Content-Type':'application/json',...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d};
+const toast=m=>window.toast?window.toast(m):alert(m);
+const normalize=()=>{let a=Array.isArray(state.items)?state.items:[];if(!a.length&&state.url)a=[state];a=a.slice(0,16).map((g,i)=>({...g,id:g.id||crypto.randomUUID(),enabled:g.enabled!==false,size:Math.max(24,Math.min(360,Number(g.size)||72)),x:Math.max(-360,Math.min(360,Number(g.x)||0)),y:Math.max(-360,Math.min(360,Number(g.y)||-80)),rotation:Math.max(-180,Math.min(180,Number(g.rotation)||0)),opacity:Math.max(0,Math.min(1,Number(g.opacity??1))),animation:g.animation||'float',animationSpeed:Number(g.animationSpeed)||1,position:g.position||'card'}));state.items=a;return a;};
+function markup(){const a=normalize(),g=a[active]||{};return `<section class="gif-sticker-panel panel"><div class="panel-title"><div><h3>GIF Stickers Studio</h3><span>เชื่อมกับหน้า Profile จริง • เพิ่มได้สูงสุด 16 ตัว</span></div><span class="gif-status">${configKey?'GIPHY READY':'ต้องตั้ง GIPHY_API_KEY'}</span></div><div class="gif-search"><input id="gifQuery" maxlength="60" placeholder="ค้นหา GIF เช่น sparkle, cute, gaming"><button type="button" class="btn btn-primary" id="gifSearchBtn">⌕ ค้นหา</button></div><div class="gif-hints"><button type="button" data-q="sparkle">✨ sparkle</button><button type="button" data-q="gaming">🎮 gaming</button><button type="button" data-q="cute">💜 cute</button><button type="button" data-q="wow">⚡ wow</button><button type="button" data-q="anime">🌟 anime</button></div><div id="gifResults" class="gif-results"><div class="gif-empty">ค้นหาแล้วคลิก GIF เพื่อเพิ่ม</div></div><div class="gif-attribution">Powered By GIPHY • เลื่อนเมาส์ในกรอบเพื่อดู GIF เพิ่ม</div><div class="gif-selected" id="gifSelected">${a.map((x,i)=>`<button type="button" class="gif-selected-card ${i===active?'active':''}" data-active="${i}"><img src="${esc(x.previewUrl||x.url||'')}" alt=""><span>${i+1}. ${esc(x.title||'GIF')}</span><b data-remove="${i}">×</b></button>`).join('')||'<div class="gif-empty">ยังไม่มี GIF</div>'}</div><div class="gif-drag-hint">🖱️ ตัวที่เลือก: ลาก = ย้าย • ↘ = ขยาย/ย่อ • ⟳ = หมุน • ทุกตัวจะใช้ค่าที่บันทึกไว้หน้าเว็บจริง</div><div class="grid grid-2"><label class="field"><span>ขนาด</span><input id="gifSize" type="number" min="24" max="360" value="${g.size||72}"></label><label class="field"><span>ตำแหน่ง</span><select id="gifPosition"><option value="card" ${g.position==='card'?'selected':''}>รอบ Profile Card</option><option value="links" ${g.position==='links'?'selected':''}>รอบส่วนลิงก์</option><option value="avatar" ${g.position==='avatar'?'selected':''}>รอบ Avatar</option></select></label><label class="field"><span>X</span><input id="gifX" type="number" min="-360" max="360" value="${g.x||0}"></label><label class="field"><span>Y</span><input id="gifY" type="number" min="-360" max="360" value="${g.y??-80}"></label><label class="field"><span>Rotation</span><input id="gifRotation" type="number" min="-180" max="180" value="${g.rotation||0}"></label><label class="field"><span>Opacity</span><input id="gifOpacity" type="number" min="0" max="1" step=".05" value="${g.opacity??1}"></label><label class="field"><span>Animation</span><select id="gifAnimation"><option value="none" ${g.animation==='none'?'selected':''}>none</option><option value="float" ${g.animation==='float'||!g.animation?'selected':''}>float</option><option value="pulse" ${g.animation==='pulse'?'selected':''}>pulse</option><option value="bounce" ${g.animation==='bounce'?'selected':''}>bounce</option><option value="spin" ${g.animation==='spin'?'selected':''}>spin</option></select></label><label class="field"><span>ความเร็ว</span><input id="gifSpeed" type="number" min=".2" max="4" step=".1" value="${g.animationSpeed||1}"></label></div><div class="actions"><label class="toggle"><input id="gifEnabled" type="checkbox" ${state.enabled!==false?'checked':''}><i class="switch"></i><span>เปิดใช้งาน GIF Stickers</span></label><button type="button" class="btn btn-primary" id="gifSave">✓ SAVE ${a.length} GIF</button><button type="button" class="btn" id="gifClear">ลบทั้งหมด</button></div></section>`}
+function render(){const old=$('#gifStickerStudio');if(old)old.innerHTML=markup();else return;bind();renderLivePreview()}
+function selected(){return normalize()[active]||null}
+function syncControls(){const g=selected();if(!g)return;['Size','X','Y','Rotation','Opacity','Speed'].forEach(k=>{const e=$('#gif'+k);if(e)e.value=k==='Size'?g.size:k==='X'?g.x:k==='Y'?g.y:k==='Rotation'?g.rotation:k==='Opacity'?g.opacity:g.animationSpeed});const p=$('#gifPosition'),an=$('#gifAnimation');if(p)p.value=g.position||'card';if(an)an.value=g.animation||'float'}
+function addGif(g){const a=normalize();if(a.length>=16)return toast('เพิ่ม GIF ได้สูงสุด 16 ตัว');a.push({id:g.id,title:g.title,url:g.url,previewUrl:g.previewUrl,provider:'giphy',enabled:true,size:72,x:0,y:-80,rotation:0,opacity:1,animation:'float',animationSpeed:1,position:'card'});state={enabled:true,items:a};active=a.length-1;render()}
+function removeGif(i){const a=normalize();a.splice(i,1);state.items=a;active=Math.max(0,Math.min(active,a.length-1));render()}
+function apply(el,g){const card=$('#pcPreviewCard');if(!card)return;const target=g.position==='avatar'?card.querySelector('.pc-avatar'):g.position==='links'?card.querySelector('#pcPreviewLinks'):card;const cr=card.getBoundingClientRect(),tr=(target||card).getBoundingClientRect();el.style.setProperty('--admin-gif-left',(tr.left+tr.width/2-cr.left)+'px');el.style.setProperty('--admin-gif-top',(tr.top+tr.height/2-cr.top)+'px');el.style.setProperty('--admin-gif-size',g.size+'px');el.style.setProperty('--admin-gif-x',g.x+'px');el.style.setProperty('--admin-gif-y',g.y+'px');el.style.setProperty('--admin-gif-r',g.rotation+'deg');el.style.setProperty('--admin-gif-opacity',g.opacity);el.dataset.animation=g.animation||'float'}
+function renderLivePreview(){const card=$('#pcPreviewCard');if(!card)return;card.querySelectorAll('.admin-gif-manipulator').forEach(x=>x.remove());const a=normalize().filter(g=>g.enabled!==false&&g.url);a.forEach((g,i)=>{const real=normalize().indexOf(g),w=document.createElement('div');w.className='admin-gif-manipulator';w.dataset.index=real;w.innerHTML=`<img class="admin-gif-preview" src="${esc(g.previewUrl||g.url)}" draggable="false" alt=""><button type="button" class="gif-rotate-handle">⟳</button><button type="button" class="gif-resize-handle">↘</button>`;if(real===active)w.classList.add('active');card.appendChild(w);apply(w,g);bindManipulation(w,real)})}
+function bindManipulation(wrap,index){
+  const get=()=>normalize()[index];
+  let drag=null;
+  const point=e=>({x:e.clientX,y:e.clientY});
+  const cleanup=()=>{
+    if(!drag)return;
+    try{if(drag.pointerId!=null)wrap.releasePointerCapture?.(drag.pointerId)}catch{}
+    wrap.classList.remove('dragging','resizing','rotating');
+    window.getSelection?.()?.removeAllRanges();
+    drag=null;
+  };
+  const begin=(mode,e)=>{
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    e.preventDefault();e.stopPropagation();
+    cleanup();active=index;
+    const g=get();if(!g)return;
+    const p=point(e),sx=p.x,sy=p.y,bx=g.x,by=g.y,base=g.size,baseRotation=g.rotation;
+    const rect=wrap.getBoundingClientRect(),cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+    const startAngle=Math.atan2(sy-cy,sx-cx)*180/Math.PI;
+    drag={pointerId:e.pointerId,mode,sx,sy,bx,by,base,baseRotation,cx,cy,startAngle};
+    wrap.classList.add(mode);
+    try{wrap.setPointerCapture?.(e.pointerId)}catch{}
+  };
+  const move=e=>{
+    if(!drag||e.pointerId!==drag.pointerId)return;
+    e.preventDefault();
+    const g=get();if(!g)return;
+    const q=point(e);
+    if(drag.mode==='dragging'){
+      g.x=Math.max(-360,Math.min(360,Math.round(drag.bx+q.x-drag.sx)));
+      g.y=Math.max(-360,Math.min(360,Math.round(drag.by+q.y-drag.sy)));
+    }else if(drag.mode==='resizing'){
+      g.size=Math.max(24,Math.min(360,Math.round(drag.base+((q.x-drag.sx)+(q.y-drag.sy))/2)));
+    }else{
+      const angle=Math.atan2(q.y-drag.cy,q.x-drag.cx)*180/Math.PI;
+      let delta=angle-drag.startAngle;if(delta>180)delta-=360;if(delta<-180)delta+=360;
+      g.rotation=Math.max(-180,Math.min(180,Math.round(drag.baseRotation+delta)));
+    }
+    apply(wrap,g);
+    const vals={gifSize:g.size,gifX:g.x,gifY:g.y,gifRotation:g.rotation};
+    Object.entries(vals).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v});
+  };
+  const up=e=>{if(drag&&e.pointerId===drag.pointerId){e.preventDefault();e.stopPropagation();cleanup()}};
+  wrap.addEventListener('pointerdown',e=>{if(e.target.closest('.gif-resize-handle,.gif-rotate-handle'))return;begin('dragging',e)},{passive:false});
+  wrap.addEventListener('pointermove',move,{passive:false});
+  wrap.addEventListener('pointerup',up,{passive:false});
+  wrap.addEventListener('pointercancel',cleanup);
+  wrap.querySelector('.gif-resize-handle')?.addEventListener('pointerdown',e=>begin('resizing',e),{passive:false});
+  wrap.querySelector('.gif-rotate-handle')?.addEventListener('pointerdown',e=>begin('rotating',e),{passive:false});
+}
+function renderResults(items){const box=$('#gifResults');if(!box)return;box.innerHTML=items.length?items.map(g=>`<button type="button" class="gif-result" data-gif-id="${esc(g.id)}"><img loading="lazy" src="${esc(g.previewUrl)}" alt=""><span>${esc(g.title||'GIF')}</span></button>`).join(''):'<div class="gif-empty">ไม่พบ GIF ที่ตรงกับคำค้น</div>';box.querySelectorAll('[data-gif-id]').forEach(b=>b.onclick=()=>{const g=items.find(x=>x.id===b.dataset.gifId);if(g)addGif(g)})}
+async function search(q){q=String(q||'').trim();if(!q)return toast('กรอกคำค้นหาก่อน');if(!configKey)return toast('ยังไม่ได้ตั้ง GIPHY_API_KEY');const box=$('#gifResults');box.innerHTML='<div class="gif-loading">กำลังค้นหา GIF จำนวนมาก…</div>';try{const u=new URL('/api/giphy/search',location.origin);u.searchParams.set('q',q);u.searchParams.set('limit','50');const r=await fetch(u,{credentials:'same-origin',cache:'no-store'});if(!r.ok){const e=await r.json().catch(()=>({}));throw Error(e.message||'GIPHY API error')}const d=await r.json();results=(d.data||[]).map(x=>({id:x.id,title:x.title,previewUrl:x.images?.fixed_width?.url||x.images?.downsized?.url,url:x.images?.original?.url||x.images?.fixed_width?.url})).filter(x=>x.previewUrl&&x.url);renderResults(results)}catch(e){box.innerHTML='<div class="gif-empty">เชื่อมต่อ GIPHY ไม่สำเร็จ</div>';toast(e.message)}}
+function bind(){const root=$('#gifStickerStudio');if(!root)return;root.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',()=>{const g=selected();if(!g)return;g.size=Math.max(24,Math.min(360,+$('#gifSize').value||72));g.x=Math.max(-360,Math.min(360,+$('#gifX').value||0));g.y=Math.max(-360,Math.min(360,+$('#gifY').value||0));g.rotation=Math.max(-180,Math.min(180,+$('#gifRotation').value||0));g.opacity=Math.max(0,Math.min(1,+$('#gifOpacity').value||0));g.animation=$('#gifAnimation').value;g.animationSpeed=Math.max(.2,Math.min(4,+$('#gifSpeed').value||1));g.position=$('#gifPosition').value;renderLivePreview()}));$('#gifSearchBtn').onclick=()=>search($('#gifQuery').value);$('#gifQuery').onkeydown=e=>{if(e.key==='Enter')search(e.target.value)};root.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{$('#gifQuery').value=b.dataset.q;search(b.dataset.q)});root.querySelectorAll('[data-active]').forEach(b=>b.onclick=e=>{if(e.target.closest('[data-remove]'))return;active=+b.dataset.active;render()});root.querySelectorAll('[data-remove]').forEach(b=>b.onclick=e=>{e.stopPropagation();removeGif(+b.dataset.remove)});$('#gifSave').onclick=async()=>{try{const items=normalize();await api('/api/gif-stickers',{method:'PUT',body:JSON.stringify({enabled:$('#gifEnabled').checked,items})});state={enabled:$('#gifEnabled').checked,items};toast(`บันทึก GIF ${items.length} ตัวแล้ว`)}catch(e){toast(e.message)}};$('#gifClear').onclick=async()=>{try{await api('/api/gif-stickers',{method:'PUT',body:JSON.stringify({enabled:false,items:[]})});state={enabled:false,items:[]};active=0;render()}catch(e){toast(e.message)}}}
+async function init(){if(!location.pathname.includes('/admin'))return;const editor=document.querySelector('.profile-card-editor');if(!editor||$('#gifStickerStudio'))return;try{configKey=(await api('/api/gifs/config')).configured?'ready':''}catch{}try{state=(await api('/api/gif-stickers')).gifStickers||state}catch{}state.items=normalize();const wrap=document.createElement('div');wrap.id='gifStickerStudio';editor.appendChild(wrap);render()}
+new MutationObserver(()=>setTimeout(init,0)).observe(document.body,{childList:true,subtree:true});init();
+})();

@@ -1,4 +1,4 @@
-const API = String(process.env.LINKBIO_API_URL || 'https://dekkhong-a8ua2gpc8-dekkhong.vercel.app').replace(/\/$/, '');
+﻿const API = String(process.env.LINKBIO_API_URL || 'https://linkbio-backend-egwq.onrender.com').replace(/\/$/, '');
 
 exports.handler = async (event) => {
   const suffix = event.path.replace(/^\/.netlify\/functions\/api/, '') || '/';
@@ -33,7 +33,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 502,
       headers: { 'content-type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ success: false, message: 'เชื่อมต่อ Backend ของ LinkBio ไม่สำเร็จ' })
+      body: JSON.stringify({ success: false, message: 'à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­ Backend à¸‚à¸­à¸‡ LinkBio à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ' })
     };
   }
 };

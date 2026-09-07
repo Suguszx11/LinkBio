@@ -1,4 +1,4 @@
-[build]
+﻿[build]
 publish = "."
 functions = "netlify/functions"
 command = "npm run build"
@@ -63,6 +63,25 @@ from = "/.env*"
 to = "/404.html"
 status = 404
 
+[[redirects]]
+from = "/*.js"
+to = "/404.html"
+status = 404
+
+[[redirects]]
+from = "/**/*.js"
+to = "/404.html"
+status = 404
+
+[[redirects]]
+from = "/*.css"
+to = "/404.html"
+status = 404
+
+[[redirects]]
+from = "/**/*.css"
+to = "/404.html"
+status = 404
 [[redirects]]
 from = "/*"
 to = "/index.html"
