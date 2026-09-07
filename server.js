@@ -59,6 +59,19 @@ async function resolveSession(req){
  const token=cookies(req).linkbio_session;const s=token&&userSessions.get(token);if(s&&s.exp>Date.now())return s.userId;if(s)userSessions.delete(token);return null;
 }
 let ownerUserId=null;
+async function integrationSettings(){
+  const owner=await getOwnerId();
+  if(!owner)return {};
+  return await sectionFor(owner,'settings',{},adminClient||supabase);
+}
+async function integrationKey(name){
+  const envMap={giphy:'GIPHY_API_KEY',openai:'OPENAI_API_KEY',firebase:'FIREBASE_API_KEY',youtube:'YOUTUBE_API_KEY'};
+  const envName=envMap[name];
+  const env=envName?String(process.env[envName]||'').trim():'';
+  if(env)return env;
+  const s=await integrationSettings();
+  return String(s?.integrations?.[name]?.key||s?.[name+'ApiKey']||'').trim();
+}
 async function getOwnerId(){
  if(ownerUserId)return ownerUserId;if(!adminClient)return null;
  const email=String(process.env.SUPABASE_OWNER_EMAIL||'owner@linkbio.local').trim().toLowerCase();
@@ -77,7 +90,7 @@ async function handleSupabase(req,res,next){
   if(req.path==='/api/config/public'&&req.method==='GET')return res.json({success:true,supabaseUrl:String(process.env.SUPABASE_URL||'').trim(),supabasePublishableKey:String(process.env.SUPABASE_PUBLISHABLE_KEY||'').trim()});
   if(!supabaseEnabled||!supabase)return next();
   try{
-    if(req.path==='/api/gifs/config'&&req.method==='GET'){let apiKey=String(process.env.GIPHY_API_KEY||'').trim();if(!apiKey){const owner=await getOwnerId();if(owner){const s=await sectionFor(owner,'settings',{});apiKey=String(s.giphyApiKey||'').trim()}}return res.json({success:true,provider:'giphy',apiKey,rating:'g',configured:!!apiKey});}
+    if(req.path==='/api/gifs/config'&&req.method==='GET'){const apiKey=await integrationKey('giphy');return res.json({success:true,provider:'giphy',apiKey,rating:'g',configured:!!apiKey});}
     if(req.path==='/api/giphy/search'&&req.method==='GET'){
       if(!(admin(req)||await resolveSession(req)))return res.status(401).json({success:false,message:'กรุณาเข้าสู่ระบบ'});
       let apiKey=String(process.env.GIPHY_API_KEY||'').trim();
@@ -85,7 +98,7 @@ async function handleSupabase(req,res,next){
       if(!apiKey)return res.status(503).json({success:false,message:'ยังไม่ได้ตั้ง GIPHY API Key'});
       const q=String(req.query?.q||'').trim().slice(0,60);const limit=Math.min(50,Math.max(1,Number(req.query?.limit)||24));
       if(!q)return res.status(400).json({success:false,message:'ต้องมีคำค้น'});
-      const keys=[String(process.env.GIPHY_API_KEY||'').trim()];const owner=await getOwnerId();if(owner){const st=await sectionFor(owner,'settings',{},adminClient);const saved=String(st.giphyApiKey||'').trim();if(saved&&saved!==keys[0])keys.push(saved)};let last={status:502,text:''};for(const key of keys.filter(Boolean)){for(const endpoint of ['https://api.giphy.com/v1/stickers/search','https://api.giphy.com/v1/gifs/search']){const u=new URL(endpoint);u.searchParams.set('api_key',key);u.searchParams.set('q',q);u.searchParams.set('limit',String(limit));u.searchParams.set('rating','g');u.searchParams.set('lang','th');u.searchParams.set('country_code','TH');try{const gr=await fetch(u,{headers:{accept:'application/json'}});const text=await gr.text();last={status:gr.status,text};if(gr.ok){let data;try{data=JSON.parse(text)}catch{continue}return res.json({success:true,data:data.data||[],pagination:data.pagination||{},source:endpoint.includes('/stickers/')?'stickers':'gifs'});}}catch(e){last={status:502,text:e.message||'fetch failed'}}}}return res.status(502).json({success:false,message:'GIPHY API ตอบกลับผิดพลาด',status:last.status,upstream:last.text.slice(0,240)});
+      const keys=[];for(const key of [String(process.env.GIPHY_API_KEY||'').trim(),await integrationKey('giphy')])if(key&&!keys.includes(key))keys.push(key);let last={status:502,text:''};for(const key of keys.filter(Boolean)){for(const endpoint of ['https://api.giphy.com/v1/stickers/search','https://api.giphy.com/v1/gifs/search']){const u=new URL(endpoint);u.searchParams.set('api_key',key);u.searchParams.set('q',q);u.searchParams.set('limit',String(limit));u.searchParams.set('rating','g');u.searchParams.set('lang','th');u.searchParams.set('country_code','TH');try{const gr=await fetch(u,{headers:{accept:'application/json'}});const text=await gr.text();last={status:gr.status,text};if(gr.ok){let data;try{data=JSON.parse(text)}catch{continue}return res.json({success:true,data:data.data||[],pagination:data.pagination||{},source:endpoint.includes('/stickers/')?'stickers':'gifs'});}}catch(e){last={status:502,text:e.message||'fetch failed'}}}}return res.status(502).json({success:false,message:'GIPHY API ตอบกลับผิดพลาด',status:last.status,upstream:last.text.slice(0,240)});
     }
     if(req.path==='/api/gif-stickers'&&req.method==='GET'){const id=await resolveUser(req,true);if(!id)return res.status(404).json({success:false,message:'ไม่พบโปรไฟล์'});return res.json({success:true,gifStickers:await sectionFor(id,'gifStickers',clone(defaults.gifStickers))});}
     if(req.path==='/api/admin/me'&&req.method==='GET'){const id=await resolveSession(req);return res.json({success:true,loggedIn:Boolean(id)});}
@@ -223,7 +236,7 @@ app.get('/api/background',(q,r)=>r.json({success:true,background:read('backgroun
 app.get('/api/appearance',(q,r)=>r.json({success:true,appearance:read('appearance')}));app.put('/api/appearance',guard,(q,r)=>{try{r.json({success:true,appearance:patch('appearance',q.body||{})})}catch(e){r.status(500).json({success:false,message:'บันทึก Appearance ไม่สำเร็จ'})}});
 app.get('/api/visualizer',(q,r)=>r.json({success:true,visualizer:read('visualizer')}));app.put('/api/visualizer',guard,(q,r)=>{try{r.json({success:true,visualizer:patch('visualizer',q.body||{})})}catch(e){r.status(500).json({success:false,message:'บันทึก Visualizer ไม่สำเร็จ'})}});
 app.get('/api/branding',(q,r)=>r.json({success:true,branding:read('branding')}));app.put('/api/branding',guard,(q,r)=>{try{r.json({success:true,branding:patch('branding',q.body||{})})}catch(e){r.status(500).json({success:false,message:'บันทึก Branding ไม่สำเร็จ'})}});
-app.get('/api/settings',guard,(q,r)=>r.json({success:true,settings:read('settings')}));app.put('/api/settings',guard,(q,r)=>r.json({success:true,settings:patch('settings',q.body||{})}));
+app.get('/api/integrations',guard,async(q,r)=>{try{const s=await integrationSettings(),i=s.integrations||{};return r.json({success:true,integrations:{giphy:{configured:!!(process.env.GIPHY_API_KEY||i.giphy?.key||s.giphyApiKey),source:process.env.GIPHY_API_KEY?'environment':'settings'},openai:{configured:!!(process.env.OPENAI_API_KEY||i.openai?.key||s.openaiApiKey),source:process.env.OPENAI_API_KEY?'environment':'settings'},firebase:{configured:!!(process.env.FIREBASE_API_KEY||i.firebase?.key||s.firebaseApiKey),source:process.env.FIREBASE_API_KEY?'environment':'settings'},youtube:{configured:!!(process.env.YOUTUBE_API_KEY||i.youtube?.key||s.youtubeApiKey),source:process.env.YOUTUBE_API_KEY?'environment':'settings'}}})}catch(e){console.error('API integrations GET:',e);return r.status(500).json({success:false,message:'โหลดสถานะ API integrations ไม่สำเร็จ'})}});app.put('/api/integrations',guard,async(q,r)=>{try{const s=await integrationSettings(),i={...(s.integrations||{})};for(const name of ['giphy','openai','firebase','youtube'])if(Object.prototype.hasOwnProperty.call(q.body||{},name)){const key=String(q.body[name]?.key??'').trim().slice(0,1000);i[name]={...(i[name]||{}),key}}s.integrations=i;const owner=await getOwnerId();if(!owner)return r.status(503).json({success:false,message:'ยังไม่พบเจ้าของระบบใน Supabase'});await saveSection(owner,'settings',s,adminClient||supabase);return r.json({success:true,message:'บันทึก API integrations แล้ว'})}catch(e){console.error('API integrations PUT:',e);return r.status(500).json({success:false,message:'บันทึก API integrations ไม่สำเร็จ'})}});app.get('/api/settings',guard,(q,r)=>r.json({success:true,settings:read('settings')}));app.put('/api/settings',guard,(q,r)=>r.json({success:true,settings:patch('settings',q.body||{})}));
 app.get('/api/analytics/views',guard,(q,r)=>{const a=read('analytics');r.json({success:true,total:a.profileViews||0,daily:a.viewsByDay||{}})});
 app.get('/api/analytics/clicks',guard,(q,r)=>{const a=read('analytics');r.json({success:true,total:Object.values(a.clicksByLink||{}).reduce((s,v)=>s+Number(v||0),0),daily:a.clicksByDay||{},byLink:a.clicksByLink||{}})});
 app.get('/api/analytics/links',guard,(q,r)=>{const a=read('analytics'),l=read('links');r.json({success:true,links:l.map(x=>({...x,clicks:Number((a.clicksByLink||{})[x.id]||0)})).sort((x,y)=>y.clicks-x.clicks)})});
@@ -236,8 +249,7 @@ app.post('/api/music/youtube',guard,(q,r)=>{const id=yt(q.body?.url);if(!id)retu
 app.post('/api/admin/upload-avatar',guard,avatarUpload.single('avatar'),(q,r)=>{if(!q.file)return r.status(400).json({success:false,message:'ไฟล์ Avatar ไม่ถูกต้อง'});const p=patch('profile',{avatar:'/uploads/avatars/'+encodeURIComponent(q.file.filename)});r.json({success:true,profile:p})});app.post('/api/admin/upload-cover',guard,coverUpload.single('cover'),(q,r)=>{if(!q.file)return r.status(400).json({success:false,message:'ไฟล์ Cover ไม่ถูกต้อง'});const p=patch('profile',{cover:'/uploads/covers/'+encodeURIComponent(q.file.filename)});r.json({success:true,profile:p})});
 app.get('/api/admin/status',guard,(q,r)=>r.json({success:true,status:'online',serverTime:new Date().toISOString()}));
 const { registerSupport }=require('./support');
-registerSupport(app,{isAdmin:admin,resolveSupabaseUser:async token=>{if(!supabase)return null;const {data,error}=await supabase.auth.getUser(token);return error?null:data?.user||null;}});
+registerSupport(app,{isAdmin:admin,resolveSupabaseUser:async token=>{if(!supabase)return null;const {data,error}=await supabase.auth.getUser(token);return error?null:data?.user||null;},resolveIntegrationKey:integrationKey});
 app.use((err,q,r,n)=>{console.error(err);if(err instanceof multer.MulterError)return r.status(400).json({success:false,message:'อัปโหลดไม่สำเร็จ: '+err.message});r.status(500).json({success:false,message:'เกิดข้อผิดพลาดในเซิร์ฟเวอร์'})});app.use((q,r)=>r.status(404).json({success:false,message:'ไม่พบ endpoint'}));
 if(require.main===module){app.listen(PORT,()=>console.log(`LinkBio running: http://localhost:${PORT}`));}
-module.exports=app;
-
+module.exports=app;\n
