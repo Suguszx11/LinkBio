@@ -1,14 +1,17 @@
 [build]
 publish = "."
-functions = "functions"
+functions = "netlify/functions"
+command = "npm run build"
 
 [functions]
 node_bundler = "esbuild"
+external_node_modules = ["express"]
 
 [[redirects]]
 from = "/api/*"
 to = "/.netlify/functions/api/:splat"
 status = 200
+force = true
 
 [[redirects]]
 from = "/admin.html"
@@ -16,8 +19,28 @@ to = "/admin/index.html"
 status = 200
 
 [[redirects]]
-from = "/u/*"
-to = "/index.html"
+from = "/admin"
+to = "/admin/index.html"
+status = 200
+
+[[redirects]]
+from = "/dashboard"
+to = "/dashboard.html"
+status = 200
+
+[[redirects]]
+from = "/login"
+to = "/login.html"
+status = 200
+
+[[redirects]]
+from = "/register"
+to = "/register.html"
+status = 200
+
+[[redirects]]
+from = "/profile"
+to = "/profile/index.html"
 status = 200
 
 [[redirects]]
