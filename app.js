@@ -1,6 +1,7 @@
 (()=>{
 const $=s=>document.querySelector(s);let state=null;
-async function api(u,o={}){const r=await fetch(u,{cache:'no-store',...o,headers:o.body instanceof FormData?{}:{'Content-Type':'application/json',...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d}
+const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
+async function api(u,o={}){const r=await fetch((u.startsWith('/api/')?LINKBIO_API_BASE+u:u),{cache:'no-store',...o,headers:o.body instanceof FormData?{}:{'Content-Type':'application/json',...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d}
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const iconMap={
 instagram:'<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.7" r="1.2" fill="currentColor"/></svg>',

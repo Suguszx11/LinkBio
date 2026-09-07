@@ -1,6 +1,7 @@
+const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
 (()=>{'use strict';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-const api=async(u,o={})=>{const r=await fetch(u,{credentials:'same-origin',cache:'no-store',...o,headers:{'Content-Type':'application/json',...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d};
+const api=async(u,o={})=>{const r=await fetch((u.startsWith('/api/')?LINKBIO_API_BASE+u:u),{credentials:'same-origin',cache:'no-store',...o,headers:{'Content-Type':'application/json',...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d};
 let tickets=[],active=null,stream=null,adminPresence=null,typingStop=null;
 function navButton(){if(!$('#nav'))return;let b=$('#supportNav')||$('#nav [data-section="support"]');if(!b){b=document.createElement('button');b.className='nav-item';b.dataset.section='support';b.innerHTML='<i class="nav-icon">◉</i><span>ติดต่อแอดมิน</span>';$('#nav').appendChild(b)}b.id='supportNav';if(!$('#supportAdminBadge')){const badge=document.createElement('em');badge.id='supportAdminBadge';b.appendChild(badge)}b.onclick=openSupport}
 async function presence(){try{await api('/api/support/admin/presence',{method:'POST'})}catch{}}

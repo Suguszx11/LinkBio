@@ -1,10 +1,11 @@
+const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
 const supaClient=window.supabaseClient;
 let supportUser=null,activeTicket=null,pollTimer=null;
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 async function getSupabase(){
  if(supaClient)return supaClient;
- const cfg=await fetch('/api/config/public',{cache:'no-store'}).then(r=>r.json());
+ const cfg=await fetch(LINKBIO_API_BASE+'/api/config/public',{cache:'no-store'}).then(r=>r.json());
  if(!cfg.supabaseUrl||!cfg.supabasePublishableKey)throw Error('ระบบบัญชียังไม่ได้ตั้งค่า Supabase');
  const lib=window.supabase||await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
  const create=lib.createClient||lib.default?.createClient;
@@ -15,7 +16,7 @@ async function api(url,opt={}){
  const token=session?.data?.session?.access_token;
  const headers={'Content-Type':'application/json',...(opt.headers||{})};
  if(token&&!headers.Authorization)headers.Authorization='Bearer '+token;
- const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...opt,headers});
+ const r=await fetch((url.startsWith('/api/')?LINKBIO_API_BASE+url:url),{credentials:'same-origin',cache:'no-store',...opt,headers});
  const d=await r.json().catch(()=>({}));
  if(!r.ok)throw Error(d.message||('HTTP '+r.status));
  return d;

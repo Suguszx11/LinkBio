@@ -1,7 +1,8 @@
+const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s);
-async function api(url,opt={}){const r=await fetch(url,{credentials:'same-origin',cache:'no-store',...opt,headers:{'Content-Type':'application/json',...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d}
+async function api(url,opt={}){const r=await fetch((url.startsWith('/api/')?LINKBIO_API_BASE+url:url),{credentials:'same-origin',cache:'no-store',...opt,headers:{'Content-Type':'application/json',...(opt.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d}
 async function mount(){
  if(!location.pathname.startsWith('/admin'))return;
  const app=$('#app');if(!app||!app.textContent.includes('Settings'))return;
