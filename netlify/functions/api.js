@@ -1,4 +1,4 @@
-﻿const API = String(process.env.LINKBIO_API_URL || 'https://linkbio-backend-egwq.onrender.com').replace(/\/$/, '');
+const API = String(process.env.LINKBIO_API_URL || 'https://linkbio-backend-egwq.onrender.com').replace(/\/$/, '');
 
 exports.handler = async (event) => {
   const suffix = event.path.replace(/^\/.netlify\/functions\/api/, '') || '/';
@@ -7,6 +7,7 @@ exports.handler = async (event) => {
   const headers = { ...event.headers };
   delete headers.host;
   delete headers['content-length'];
+  delete headers['content-encoding'];
   try {
     const init = { method: event.httpMethod, headers, redirect: 'manual' };
     if (!['GET', 'HEAD'].includes(event.httpMethod)) {
@@ -18,7 +19,8 @@ exports.handler = async (event) => {
     const body = Buffer.from(await upstream.arrayBuffer()).toString('base64');
     const out = {};
     upstream.headers.forEach((v, k) => {
-      if (k.toLowerCase() !== 'set-cookie') out[k] = v;
+      const key = k.toLowerCase();
+      if (!['set-cookie', 'content-encoding', 'content-length', 'transfer-encoding'].includes(key)) out[k] = v;
     });
     const cookies = upstream.headers.getSetCookie?.() || [];
     return {
@@ -33,7 +35,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 502,
       headers: { 'content-type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ success: false, message: 'à¹€à¸Šà¸·à¹ˆà¸­à¸¡à¸•à¹ˆà¸­ Backend à¸‚à¸­à¸‡ LinkBio à¹„à¸¡à¹ˆà¸ªà¸³à¹€à¸£à¹‡à¸ˆ' })
+      body: JSON.stringify({ success: false, message: 'Backend connection failed' })
     };
   }
 };
