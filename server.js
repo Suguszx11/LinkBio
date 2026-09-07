@@ -46,7 +46,7 @@ const adminClient=(process.env.SUPABASE_URL&&serviceKey)?createClient(process.en
 const userSessions=new Map();
 const PUBLIC_SECTIONS=['profile','links','music','appearance','visualizer','branding','profileCard','background','gifStickers'];
 function publicUsername(req){const q=String(req.query?.username||'').trim().replace(/^@/,'');if(q)return q;const ref=String(req.headers.referer||'');const m=ref.match(/\/(?:u\/)?([a-z0-9_-]{2,40})(?:[/?#]|$)/i);const name=m?decodeURIComponent(m[1]).toLowerCase():'';return ['admin','api','login','register','dashboard','settings','support','profile','privacy','terms','favicon','assets','static'].includes(name)?'':name;}
-async function findUserByUsername(username){if(!supabaseEnabled||!supabase)return null;const normalized=String(username||'').trim().replace(/^@/,'').toLowerCase();const {data,error}=await supabase.from('profiles').select('user_id,username,display_name,avatar,bio,updated_at').eq('username',normalized).maybeSingle();if(error)throw error;return data?{user_id:data.user_id,data:{username:data.username,displayName:data.display_name,avatar:data.avatar,bio:data.bio},updated_at:data.updated_at}:null;}
+async function findUserByUsername(username){if(!supabaseEnabled||!supabase)return null;const normalized=String(username||'').trim().replace(/^@/,'').toLowerCase();const {data,error}=await supabase.from('user_data').select('user_id,data').eq('section','profile').limit(1000);if(error)throw error;const row=(data||[]).find(x=>String(x?.data?.username||'').trim().replace(/^@/,'').toLowerCase()===normalized);if(!row)return null;const p=row.data||{};return {user_id:row.user_id,data:{username:p.username,displayName:p.displayName||p.name,avatar:p.avatar,bio:p.bio},updated_at:p.updatedAt||null};}
 async function sectionsFor(userId){const {data,error}=await supabase.from('user_data').select('section,data').eq('user_id',userId).in('section',PUBLIC_SECTIONS);if(error)throw error;const out={};for(const row of data||[])out[row.section]=row.data;return out;}
 async function sectionFor(userId,section,fallback={},client=supabase){const dbClient=client||supabase;const {data,error}=await dbClient.from('user_data').select('data').eq('user_id',userId).eq('section',section).maybeSingle();if(error)throw error;return data?.data??fallback;}
 async function saveSection(userId,section,value,client=supabase){const dbClient=client||supabase;if(!dbClient)throw new Error('Supabase client is not configured');const {data,error}=await dbClient.from('user_data').upsert({user_id:userId,section,data:value},{onConflict:'user_id,section'}).select('data').single();if(error)throw error;return data.data;}
@@ -74,9 +74,16 @@ async function integrationKey(name){
 }
 async function getOwnerId(){
  if(ownerUserId)return ownerUserId;if(!adminClient)return null;
- const email=String(process.env.SUPABASE_OWNER_EMAIL||'owner@linkbio.local').trim().toLowerCase();
+ const email=String(process.env.SUPABASE_OWNER_EMAIL||'').trim().toLowerCase();
  const {data,error}=await adminClient.auth.admin.listUsers({page:1,perPage:1000});if(error)throw error;
- ownerUserId=(data.users||[]).find(u=>u.email?.toLowerCase()===email)?.id||null;return ownerUserId;
+ const users=data.users||[];
+ ownerUserId=(email?users.find(u=>u.email?.toLowerCase()===email)?.id:null)||null;
+ if(!ownerUserId){
+   const rows=await adminClient.from('user_data').select('user_id').eq('section','profile').limit(1);
+   if(rows.error)throw rows.error;
+   ownerUserId=rows.data?.[0]?.user_id||null;
+ }
+ return ownerUserId;
 }
 async function resolveUser(req,allowPublic=true){
  const sid=await resolveSession(req);if(sid)return sid;
