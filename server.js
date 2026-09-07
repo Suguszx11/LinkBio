@@ -252,4 +252,5 @@ const { registerSupport }=require('./support');
 registerSupport(app,{isAdmin:admin,resolveSupabaseUser:async token=>{if(!supabase)return null;const {data,error}=await supabase.auth.getUser(token);return error?null:data?.user||null;},resolveIntegrationKey:integrationKey});
 app.use((err,q,r,n)=>{console.error(err);if(err instanceof multer.MulterError)return r.status(400).json({success:false,message:'อัปโหลดไม่สำเร็จ: '+err.message});r.status(500).json({success:false,message:'เกิดข้อผิดพลาดในเซิร์ฟเวอร์'})});app.use((q,r)=>r.status(404).json({success:false,message:'ไม่พบ endpoint'}));
 if(require.main===module){app.listen(PORT,()=>console.log(`LinkBio running: http://localhost:${PORT}`));}
-module.exports=app;\n
+module.exports=app;
+
