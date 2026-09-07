@@ -1,48 +1,79 @@
-(()=>{
-'use strict';
-const CATALOG={
-  none:'',sparkle:'✨',heart:'💗',star:'⭐',bunny:'🐰',bear:'🧸',cat:'🐱',duck:'🐥',
-  flower:'🌸',butterfly:'🦋',cloud:'☁️',moon:'🌙',planet:'🪐',rainbow:'🌈',mushroom:'🍄',
-  cupcake:'🧁',ghost:'👻',alien:'👽'
+/* LinkBio built-in animated sticker catalog */
+window.LinkBioStickers = {
+  none: { label: 'ไม่มีสติ๊กเกอร์', emoji: '', className: 'sticker-none' },
+  sparkle: { label: 'ประกายวิ้ง', emoji: '✨', className: 'sticker-sparkle' },
+  heart: { label: 'หัวใจลอย', emoji: '💗', className: 'sticker-heart' },
+  star: { label: 'ดาวน่ารัก', emoji: '⭐', className: 'sticker-star' },
+  bunny: { label: 'กระต่าย', emoji: '🐰', className: 'sticker-bunny' },
+  bear: { label: 'หมีน้อย', emoji: '🧸', className: 'sticker-bear' },
+  cat: { label: 'แมวน้อย', emoji: '🐱', className: 'sticker-cat' },
+  duck: { label: 'เป็ดน้อย', emoji: '🐥', className: 'sticker-duck' },
+  flower: { label: 'ดอกไม้', emoji: '🌸', className: 'sticker-flower' },
+  butterfly: { label: 'ผีเสื้อ', emoji: '🦋', className: 'sticker-butterfly' },
+  cloud: { label: 'ก้อนเมฆ', emoji: '☁️', className: 'sticker-cloud' },
+  moon: { label: 'พระจันทร์', emoji: '🌙', className: 'sticker-moon' },
+  planet: { label: 'ดาวเคราะห์', emoji: '🪐', className: 'sticker-planet' },
+  rainbow: { label: 'สายรุ้ง', emoji: '🌈', className: 'sticker-rainbow' },
+  mushroom: { label: 'เห็ดน้อย', emoji: '🍄', className: 'sticker-mushroom' },
+  cupcake: { label: 'คัพเค้ก', emoji: '🧁', className: 'sticker-cupcake' },
+  ghost: { label: 'ผีน้อย', emoji: '👻', className: 'sticker-ghost' },
+  alien: { label: 'เอเลี่ยนน้อย', emoji: '👽', className: 'sticker-alien' }
 };
-const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-function removeAll(){document.querySelectorAll('.profile-sticker-layer,.profile-gif-sticker-layer').forEach(x=>x.remove())}
-function renderLinkBioSticker(s={}){
-  document.querySelectorAll('.profile-sticker-layer').forEach(x=>x.remove());
-  if(!s?.enabled||!CATALOG[s.preset])return;
-  const host=document.querySelector('.profile-card');if(!host)return;
-  const el=document.createElement('div');el.className='profile-sticker-layer';el.textContent=CATALOG[s.preset];el.setAttribute('aria-hidden','true');
-  el.style.setProperty('--st-size',Math.min(180,Math.max(16,Number(s.size)||42))+'px');
-  el.style.setProperty('--st-x',Math.min(360,Math.max(-360,Number(s.x)||0))+'px');
-  el.style.setProperty('--st-y',Math.min(360,Math.max(-360,Number(s.y)||-10))+'px');
-  el.style.setProperty('--st-r',Math.min(180,Math.max(-180,Number(s.rotation)||0))+'deg');
-  el.style.setProperty('--st-opacity',Math.min(1,Math.max(0,Number(s.opacity??1))));
-  el.style.setProperty('--st-speed',Math.min(4,Math.max(.2,Number(s.animationSpeed)||1)));
-  host.appendChild(el);
-}
-function renderLinkBioGifSticker(data={}){
-  document.querySelectorAll('.profile-gif-sticker-layer').forEach(x=>x.remove());
-  const items=Array.isArray(data?.items)?data.items.filter(x=>x&&x.enabled!==false&&/^https:\/\//i.test(String(x.url||''))):[];
-  if(data?.enabled===false||!items.length)return;
-  const host=document.querySelector('.profile-card');if(!host)return;
-  const frag=document.createDocumentFragment();
-  items.slice(0,16).forEach((g,i)=>{
-    const wrap=document.createElement('div');wrap.className='profile-gif-sticker-layer';
-    wrap.style.setProperty('--gif-size',Math.min(360,Math.max(24,Number(g.size)||72))+'px');
-    wrap.style.setProperty('--gif-x',Math.min(360,Math.max(-360,Number(g.x)||0))+'px');
-    wrap.style.setProperty('--gif-y',Math.min(360,Math.max(-360,Number(g.y)||0))+'px');
-    wrap.style.setProperty('--gif-r',Math.min(180,Math.max(-180,Number(g.rotation)||0))+'deg');
-    wrap.style.setProperty('--gif-opacity',Math.min(1,Math.max(0,Number(g.opacity??1))));
-    wrap.style.setProperty('--gif-speed',Math.min(4,Math.max(.2,Number(g.animationSpeed)||1)));
-    wrap.dataset.animation=['none','float','pulse','bounce','spin'].includes(g.animation)?g.animation:'float';
-    wrap.dataset.position=['card','links','avatar'].includes(g.position)?g.position:'card';
-    wrap.style.setProperty('--gif-order',i);
-    const img=document.createElement('img');img.className='profile-gif-sticker';img.src=String(g.url);img.alt=esc(g.title||'GIF sticker');img.loading='lazy';img.decoding='async';img.referrerPolicy='no-referrer';
-    wrap.appendChild(img);frag.appendChild(wrap);
+
+window.renderLinkBioGifSticker = function (settings = {}) {
+  const root=document.querySelector('.profile-card'); if(!root)return;
+  root.querySelectorAll('.profile-gif-sticker').forEach(x=>x.remove());
+  let items=Array.isArray(settings.items)?settings.items:[];if(!items.length&&settings.url)items=[settings];if(settings.enabled===false)return;
+  items.slice(0,16).filter(g=>g&&g.url&&g.enabled!==false).forEach(g=>{
+    const el=document.createElement('img');el.className='profile-gif-sticker';el.src=g.url;el.alt='';el.setAttribute('aria-hidden','true');
+    const size=Math.max(24,Math.min(360,Number(g.size)||72)),x=Math.max(-360,Math.min(360,Number(g.x)||0)),y=Math.max(-360,Math.min(360,Number(g.y)||-80)),r=Math.max(-180,Math.min(180,Number(g.rotation)||0)),o=Math.max(0,Math.min(1,Number(g.opacity??1))),speed=Math.max(.2,Math.min(4,Number(g.animationSpeed)||1));
+    const pos=g.position||'card',anchor=pos==='avatar'?root.querySelector('.avatar-wrap'):pos==='links'?root.querySelector('#links'):root,rr=root.getBoundingClientRect(),ar=(anchor||root).getBoundingClientRect();
+    el.style.setProperty('--gif-left',(ar.left+ar.width/2-rr.left)+'px');el.style.setProperty('--gif-top',(ar.top+ar.height/2-rr.top)+'px');el.style.setProperty('--gif-size',size+'px');el.style.setProperty('--gif-x',x+'px');el.style.setProperty('--gif-y',y+'px');el.style.setProperty('--gif-r',r+'deg');el.style.setProperty('--gif-opacity',o);el.style.setProperty('--gif-speed',speed+'s');el.dataset.animation=g.animation||'float';root.appendChild(el);
   });
-  host.appendChild(frag);
-}
-window.renderLinkBioSticker=renderLinkBioSticker;
-window.renderLinkBioGifSticker=renderLinkBioGifSticker;
-window.removeLinkBioStickers=removeAll;
-})();
+};
+
+window.renderLinkBioSticker = function (settings = {}) {
+  const root = document.querySelector('.profile-card');
+  if (!root) return;
+
+  root.querySelector('.profile-sticker')?.remove();
+
+  const item =
+    window.LinkBioStickers[settings.preset] ||
+    window.LinkBioStickers.none;
+
+  if (!settings.enabled || !item.emoji) return;
+
+  const el = document.createElement('div');
+
+  el.className = `profile-sticker ${item.className}`;
+  el.textContent = item.emoji;
+  el.setAttribute('aria-hidden', 'true');
+
+  const size = Math.max(16, Math.min(140, Number(settings.size) || 42));
+  const x = Math.max(-240, Math.min(240, Number(settings.x) || 0));
+  const y = Math.max(-240, Math.min(240, Number(settings.y) || 0));
+  const rotation = Math.max(
+    -180,
+    Math.min(180, Number(settings.rotation) || 0)
+  );
+
+  const opacity = Math.max(
+    0,
+    Math.min(1, Number(settings.opacity ?? 1))
+  );
+
+  const speed = Math.max(
+    0.2,
+    Math.min(4, Number(settings.animationSpeed) || 1)
+  );
+
+  el.style.setProperty('--sticker-size', `${size}px`);
+  el.style.setProperty('--sticker-x', `${x}px`);
+  el.style.setProperty('--sticker-y', `${y}px`);
+  el.style.setProperty('--sticker-rotation', `${rotation}deg`);
+  el.style.setProperty('--sticker-opacity', opacity);
+  el.style.setProperty('--sticker-speed', `${speed}s`);
+
+  root.appendChild(el);
+};

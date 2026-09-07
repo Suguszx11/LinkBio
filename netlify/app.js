@@ -30,6 +30,5 @@ function scheduleLoad(){clearTimeout(loadTimer);loadTimer=setTimeout(()=>load(),
 $('#share')?.addEventListener('click',async()=>{try{if(navigator.share)await navigator.share({title:state?.name||'LinkBio',text:state?.bio||'',url:location.href});else await navigator.clipboard.writeText(location.href)}catch{}});
 const dot=$('#mouseDot');if(dot&&matchMedia('(pointer:fine)').matches){let tx=innerWidth/2,ty=innerHeight/2,x=tx,y=ty;addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY});const tick=()=>{x+=(tx-x)*.32;y+=(ty-y)*.32;dot.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;requestAnimationFrame(tick)};tick()}else dot?.remove();
 addEventListener('storage',e=>{if(e.key==='linkbio_profile_updated')scheduleLoad()});const LinkBioUpdates='BroadcastChannel' in window?new BroadcastChannel('linkbio-updates'):null;LinkBioUpdates?.addEventListener('message',e=>{if(e.data?.type==='profile-updated')scheduleLoad()});
-if('EventSource' in window){const stream=new EventSource('/api/profile/stream');stream.addEventListener('update',scheduleLoad);stream.onerror=()=>{try{stream.close()}catch{}setTimeout(()=>{if(document.visibilityState!=='hidden')location.reload()},5000)}}
 addEventListener('online',()=>load());load();
 })();

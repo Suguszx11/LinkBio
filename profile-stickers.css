@@ -1,1 +1,70 @@
-.profile-sticker-layer{position:absolute;left:50%;top:50%;z-index:20;width:var(--st-size);height:var(--st-size);display:grid;place-items:center;font-size:var(--st-size);line-height:1;pointer-events:none;user-select:none;opacity:var(--st-opacity);transform:translate(calc(-50% + var(--st-x)),calc(-50% + var(--st-y))) rotate(var(--st-r));animation:profileStickerFloat calc(1.8s / var(--st-speed)) ease-in-out infinite;filter:drop-shadow(0 7px 16px rgba(0,0,0,.28));will-change:transform}.profile-sticker-layer::after{content:"";position:absolute;inset:-8px;border:1px dashed rgba(255,255,255,.12);border-radius:50%;opacity:.7}.profile-gif-sticker-layer{position:absolute;left:50%;top:50%;z-index:19;width:var(--gif-size);height:var(--gif-size);pointer-events:none;user-select:none;opacity:var(--gif-opacity);transform:translate(calc(-50% + var(--gif-x)),calc(-50% + var(--gif-y))) rotate(var(--gif-r));will-change:transform;filter:drop-shadow(0 7px 16px rgba(0,0,0,.3));animation:profileGifFloat calc(2.2s / var(--gif-speed)) ease-in-out infinite}.profile-gif-sticker{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}.profile-gif-sticker-layer[data-animation="none"]{animation:none}.profile-gif-sticker-layer[data-animation="float"]{animation:profileGifFloat calc(2.2s / var(--gif-speed)) ease-in-out infinite}.profile-gif-sticker-layer[data-animation="pulse"]{animation:profileGifPulse calc(2s / var(--gif-speed)) ease-in-out infinite}.profile-gif-sticker-layer[data-animation="bounce"]{animation:profileGifBounce calc(2s / var(--gif-speed)) ease-in-out infinite}.profile-gif-sticker-layer[data-animation="spin"]{animation:profileGifSpin calc(3s / var(--gif-speed)) linear infinite}@keyframes profileStickerFloat{0%,100%{transform:translate(calc(-50% + var(--st-x)),calc(-50% + var(--st-y))) rotate(var(--st-r)) translateY(0)}50%{transform:translate(calc(-50% + var(--st-x)),calc(-50% + var(--st-y))) rotate(var(--st-r)) translateY(-7px)}}@keyframes profileGifFloat{0%,100%{transform:translate(calc(-50% + var(--gif-x)),calc(-50% + var(--gif-y))) rotate(var(--gif-r)) translateY(0)}50%{transform:translate(calc(-50% + var(--gif-x)),calc(-50% + var(--gif-y))) rotate(var(--gif-r)) translateY(-8px)}}@keyframes profileGifPulse{50%{transform:translate(calc(-50% + var(--gif-x)),calc(-50% + var(--gif-y))) rotate(var(--gif-r)) scale(1.08)}}@keyframes profileGifBounce{50%{transform:translate(calc(-50% + var(--gif-x)),calc(-50% + var(--gif-y))) rotate(var(--gif-r)) translateY(-14px)}}@keyframes profileGifSpin{to{transform:translate(calc(-50% + var(--gif-x)),calc(-50% + var(--gif-y))) rotate(calc(var(--gif-r) + 360deg))}}.profile-gif-sticker-layer[data-position="links"]{z-index:30}.profile-gif-sticker-layer[data-position="avatar"]{z-index:31}@media(max-width:600px){.profile-sticker-layer{font-size:min(var(--st-size),120px);width:min(var(--st-size),120px);height:min(var(--st-size),120px)}.profile-gif-sticker-layer{width:min(var(--gif-size),220px);height:min(var(--gif-size),220px)}}@media(prefers-reduced-motion:reduce){.profile-sticker-layer,.profile-gif-sticker-layer{animation:none!important}}
+.profile-sticker{
+  position:absolute;
+  left:50%;
+  top:50%;
+  z-index:20;
+  width:var(--sticker-size,42px);
+  height:var(--sticker-size,42px);
+  display:grid;
+  place-items:center;
+  font-size:var(--sticker-size,42px);
+  line-height:1;
+  pointer-events:none;
+  user-select:none;
+  opacity:var(--sticker-opacity,1);
+  transform:
+    translate(
+      calc(-50% + var(--sticker-x,0px)),
+      calc(-50% + var(--sticker-y,0px))
+    )
+    rotate(var(--sticker-rotation,0deg));
+  transform-origin:center;
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.28));
+  animation:linkBioStickerFloat
+    calc(1.8s / var(--sticker-speed,1))
+    ease-in-out infinite;
+  will-change:transform;
+}
+
+@keyframes linkBioStickerFloat{
+  0%,100%{transform:translate(calc(-50% + var(--sticker-x,0px)),calc(-50% + var(--sticker-y,0px))) rotate(var(--sticker-rotation,0deg)) translateY(0)}
+  50%{transform:translate(calc(-50% + var(--sticker-x,0px)),calc(-50% + var(--sticker-y,0px))) rotate(var(--sticker-rotation,0deg)) translateY(-7px)}
+}
+
+.sticker-sparkle{
+  filter:
+    drop-shadow(0 0 8px rgba(255,255,255,.8))
+    drop-shadow(0 0 18px rgba(168,85,247,.7));
+}
+
+.sticker-heart{
+  filter:
+    drop-shadow(0 0 8px rgba(255,80,150,.8));
+}
+
+.sticker-star,
+.sticker-butterfly{
+  filter:
+    drop-shadow(0 0 9px rgba(255,255,255,.65));
+}
+
+.sticker-bunny,
+.sticker-bear,
+.sticker-cat,
+.sticker-duck{
+  filter:drop-shadow(0 7px 10px rgba(0,0,0,.3));
+}
+
+.profile-gif-sticker{position:absolute;left:var(--gif-left,50%);top:var(--gif-top,50%);z-index:30;width:var(--gif-size,72px);height:var(--gif-size,72px);object-fit:contain;pointer-events:none;user-select:none;opacity:var(--gif-opacity,1);transform:translate(calc(-50% + var(--gif-x,0px)),calc(-50% + var(--gif-y,-80px))) rotate(var(--gif-r,0deg));filter:drop-shadow(0 0 12px color-mix(in srgb,var(--accent),transparent 45%));will-change:transform,filter}.profile-gif-sticker[data-animation="float"]{animation:gifFloat calc(var(--gif-speed,1s)*2.2) ease-in-out infinite}.profile-gif-sticker[data-animation="pulse"]{animation:gifPulse calc(var(--gif-speed,1s)*2) ease-in-out infinite}.profile-gif-sticker[data-animation="bounce"]{animation:gifBounce calc(var(--gif-speed,1s)*2) ease-in-out infinite}.profile-gif-sticker[data-animation="spin"]{animation:gifSpin calc(var(--gif-speed,1s)*3) linear infinite}@keyframes gifFloat{50%{margin-top:-7px}}@keyframes gifPulse{50%{scale:1.08;filter:drop-shadow(0 0 22px var(--accent))}}@keyframes gifBounce{50%{margin-top:-12px}}@keyframes gifSpin{to{rotate:360deg}}@media(max-width:480px){.profile-gif-sticker{max-width:38vw;max-height:38vw}}
+
+@media(prefers-reduced-motion:reduce){
+  .profile-sticker{
+    animation:none!important;
+  }
+}
+/* Multi GIF Sticker sync */
+.profile-gif-sticker{pointer-events:none;position:absolute;left:var(--gif-left,50%);top:var(--gif-top,50%);z-index:21;width:var(--gif-size,72px);height:var(--gif-size,72px);object-fit:contain;user-select:none;opacity:var(--gif-opacity,1);transform:translate(calc(-50% + var(--gif-x,0px)),calc(-50% + var(--gif-y,0px))) rotate(var(--gif-r,0deg));transform-origin:center;filter:drop-shadow(0 0 12px rgba(168,85,247,.5));will-change:transform}
+.profile-gif-sticker[data-animation="float"]{animation:profileGifFloat calc(2.2s / var(--gif-speed,1)) ease-in-out infinite}.profile-gif-sticker[data-animation="pulse"]{animation:profileGifPulse calc(2s / var(--gif-speed,1)) ease-in-out infinite}.profile-gif-sticker[data-animation="bounce"]{animation:profileGifBounce calc(2s / var(--gif-speed,1)) ease-in-out infinite}.profile-gif-sticker[data-animation="spin"]{animation:profileGifSpin calc(3s / var(--gif-speed,1)) linear infinite}
+@keyframes profileGifFloat{50%{translate:0 -7px}}@keyframes profileGifPulse{50%{scale:1.08}}@keyframes profileGifBounce{50%{translate:0 -12px}}@keyframes profileGifSpin{to{rotate:360deg}}
+
+.giphy-public-attribution{display:flex;justify-content:center;align-items:center;margin:14px auto 4px;position:relative;z-index:20}.giphy-public-attribution a{display:inline-flex;padding:4px 7px;border-radius:7px;background:#111;line-height:0}.giphy-public-attribution img{width:150px;height:auto;display:block;object-fit:contain}.giphy-public-attribution a:hover{filter:brightness(1.1)}
