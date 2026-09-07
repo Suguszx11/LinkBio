@@ -1,4 +1,3 @@
-const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s);

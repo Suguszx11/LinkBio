@@ -1,4 +1,3 @@
-const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
 const supaClient=window.supabaseClient;
 let supportUser=null,activeTicket=null,pollTimer=null;
 const $=s=>document.querySelector(s);

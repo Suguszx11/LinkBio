@@ -1,4 +1,3 @@
-const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
 (()=>{'use strict';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
 const api=async(u,o={})=>{const r=await fetch((u.startsWith('/api/')?LINKBIO_API_BASE+u:u),{credentials:'same-origin',cache:'no-store',...o,headers:{'Content-Type':'application/json',...(o.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.message||`HTTP ${r.status}`);return d};

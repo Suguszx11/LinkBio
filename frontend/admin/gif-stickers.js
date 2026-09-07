@@ -1,4 +1,3 @@
-const LINKBIO_API_BASE=location.hostname.endsWith('netlify.app')?'/.netlify/functions/api':'';
 (()=>{
 'use strict';
 const $=s=>document.querySelector(s),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
